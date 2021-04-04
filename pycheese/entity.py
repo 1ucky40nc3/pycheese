@@ -11,6 +11,9 @@ Example:
 """
 
 
+from __future__ import annotations
+
+from typing import Type
 from typing import Union
 from typing import Tuple
 
@@ -35,7 +38,7 @@ class Entity:
         self.attacker = None
         self.pinned = False
 
-    def set_attacked(self, status: bool):
+    def set_attacked(self, status: bool) -> None:
         """Sets the entity's attacked attribute to the specified status."""
         self.attacked = status
 
@@ -43,7 +46,7 @@ class Entity:
         """Get the value of the entity's attacked attribute."""
         return self.attacked
 
-    def set_pinned(self, status: bool, attacker: Piece = None):
+    def set_pinned(self, status: bool, attacker: Entity = None) -> None:
         """
         Set this entity's pinned attribute.
 
@@ -71,7 +74,7 @@ class Empty(Entity):
     def __init__(self, cord: Tuple[int, int]):
         super().__init__(cord)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Get the string representation of an empty field (⊡)."""
         return "⊡"
 
@@ -104,7 +107,7 @@ class Piece(Entity):
         """Get the membership attribute of the piece."""
         return self.member
 
-    def set_cord(self, cord: Tuple[int, int]):
+    def set_cord(self, cord: Tuple[int, int]) -> None:
         """Set the coordinate of the piece."""
         self.cord = cord
 
@@ -235,7 +238,7 @@ class Rook(Piece):
 
         self.moved = False
     
-    def did_move(self):
+    def did_move(self) -> None:
         """Set moved attribute of the rook to True."""
         self.moved = True
 
@@ -295,7 +298,7 @@ class King(Piece):
 
         self.moved = False
     
-    def did_move(self):
+    def did_move(self) -> None:
         """Set moved attribute of the king to True."""
         self.moved = True
 
