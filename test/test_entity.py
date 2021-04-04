@@ -1,26 +1,98 @@
-def test_entity():
-    pass
+# -*- coding: utf-8 -*-
+"""Unittests for code in the entity module.
 
-def test_empty():
-    pass
+This module contains code to test the content
+of the pycheese.entity module using pytest.
+
+Example:
+    To run the tests you can for example:
+        - Run the pytest command from the command line:
+            ..> pytest
+        - Run the tests.py file in the repos top-level:
+            ..> python tests.py
+"""
+
+
+from typing import Union
+from typing import List
+from typing import Any
+
+from pycheese.entity import Entity
+from pycheese.entity import Empty
+from pycheese.entity import Piece
+from pycheese.entity import Pawn
+from pycheese.entity import Knight
+from pycheese.entity import Bishop
+from pycheese.entity import Rook
+from pycheese.entity import Queen
+from pycheese.entity import King
+
+
+def assert_obj_attr(obj: object, attr: str, target: object):
+    """Assert a objects attribute.
+
+    First the code will assert if the given object has the
+    attribute that is to be checked. Secondly it the code
+    will assert of the attributes value is the target.
+
+    Args:
+        obj (:obj:): The object whose attribute is to be checked.
+        attr (str): The name of the attribute which is to be checked.
+        target (:obj:): The target value of the attribute in question.
+    """
+    assert attr in dir(obj)
+    assert getattr(obj, attr) == target
+
+
+def assert_obj_func(obj: object, func: str, param: Union[List[Any], None], target: object):
+    """Assert a objects function.
+
+    First the code will assert if the given object has the
+    function that is to be checked. Secondly it the code
+    will assert of the functions return value is the target.
+
+    Args:
+        obj (:obj:): The object whose attribute is to be checked.
+        func (str): The name of the function which is to be checked.
+        param (:obj:, optional): Parameters for the function call.
+        target (:obj:): The target value of the attribute in question.
+    """
+    assert func in dir(type(obj))
+
+    if param:
+        assert getattr(obj, func)(*param) == target
+    else:
+        assert getattr(obj, func)() == target
+
+def test_entity():
+    """Test the functionality of the abstract Entity class.
+
+    Check if the Entity class`s behavoir is accordingly.
+    To do so initialize an instance of the abstract class and
+    instances of the first-level children of the abstract class.
+    Assert their behavior.
+    """
+    # Sample values
+    cord = (0, 0)
+    member = "white"
+    moves = ((0, 0),)
+
+    # Instance of the abstract class
+    entity = Entity(cord)
+    # Instances of first level children of the abstract class.
+    empty = Empty(cord)
+    piece = Piece(cord, member, moves)
+
+    for obj in [entity, empty, piece]:
+        assert_obj_attr(obj, "cord", cord)
+        assert_obj_attr(obj, "attacked", False)
+        assert_obj_attr(obj, "attacker", None)
+        assert_obj_attr(obj, "pinned", False)
+
+        assert_obj_func(obj, "set_attacked", [True], None)
+        assert_obj_func(obj, "is_attacked", None, True)
+        assert_obj_func(obj, "set_pinned", [True, piece], None)
+        assert_obj_func(obj, "is_pinned", None, (True, piece))
 
 def test_piece():
-    pass
-
-def test_pawn():
-    pass
-
-def test_knight():
-    pass
-
-def test_bishop():
-    pass
-
-def test_rook():
-    pass
-
-def test_queen():
-    pass
-
-def test_king():
     pass
