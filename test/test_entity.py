@@ -16,6 +16,7 @@ Example:
 from typing import Union
 from typing import List
 from typing import Any
+from typing import Type
 
 from pycheese.entity import Entity
 from pycheese.entity import Empty
@@ -64,6 +65,7 @@ def assert_obj_func(obj: object, func: str, param: Union[List[Any], None], targe
     else:
         assert getattr(obj, func)() == target
 
+
 def test_entity():
     """Test the functionality of the abstract Entity class.
 
@@ -94,5 +96,49 @@ def test_entity():
         assert_obj_func(obj, "set_pinned", [True, piece], None)
         assert_obj_func(obj, "is_pinned", None, (True, piece))
 
+
 def test_piece():
-    pass
+    """Test the functionality of the abstract Piece class.
+
+    Check if the Piece class`s behavoir is accordingly.
+    To do so initialize an instance of the abstract class and
+    instances of the first-level children of the abstract class.
+    Assert their behavior.
+    """
+    # Sample values
+    cord = (0, 0)
+    member = "white"
+    moves = ((0, 0),)
+
+    # Instance of the abstract class
+    piece = Piece(cord, member, moves)
+    # Instances of first level children of the abstract class.
+    pawn = Pawn(cord, member)
+    knight = Knight(cord, member)
+    bishop = Bishop(cord, member)
+    rook = Rook(cord, member)
+    queen = Queen(cord, member)
+    king = King(cord, member)
+
+    def _moves(obj: Type[Piece]): 
+        """Get a class`s moves if moves is a class attribute."""
+        return type(obj).moves if "moves" in dir(type(obj)) else moves
+
+    for obj in [piece, pawn, knight, bishop, rook, queen, king]:
+        assert_obj_attr(obj, "cord", cord)
+        assert_obj_attr(obj, "attacked", False)
+        assert_obj_attr(obj, "attacker", None)
+        assert_obj_attr(obj, "pinned", False)
+
+        assert_obj_attr(obj, "member", member)
+        assert_obj_attr(obj, "moves", _moves(obj))
+
+        assert_obj_func(obj, "set_attacked", [True], None)
+        assert_obj_func(obj, "is_attacked", None, True)
+        assert_obj_func(obj, "set_pinned", [True, piece], None)
+        assert_obj_func(obj, "is_pinned", None, (True, piece))
+
+        assert_obj_func(obj, "get_moves", None, _moves(obj))
+        assert_obj_func(obj, "membership", None, member)
+        assert_obj_func(obj, "set_cord", [(1, 1)], None)
+        assert_obj_func(obj, "get_cord", None, (1, 1))
