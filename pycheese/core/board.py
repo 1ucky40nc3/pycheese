@@ -5,9 +5,9 @@ This module contains code that represents
 a chessboard in an object-oriented style.
 
 Example:
-    >>> queen = Queen(cord, member, moves)
-    >>> assert  isinstance(queen, Piece)
-    >>> assert  isinstance(queen, Entity)
+    >>> board = Board()
+    >>> board("e2")
+    >>> board("e2", "e4")
 """
 
 
