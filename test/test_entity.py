@@ -10,6 +10,9 @@ Example:
             ..> pytest
         - Run the tests.py file in the repos top-level:
             ..> python tests.py
+
+Todos:
+    * TODO: update test for classes with 'pseudo immutable' attributes
 """
 
 
