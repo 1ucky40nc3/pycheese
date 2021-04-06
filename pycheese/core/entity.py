@@ -26,39 +26,10 @@ class Entity:
 
     Attributes:
         __cord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        __attacked (bool): Boolean that states if this entity is attacked.
-        __attacker (:obj:`Piece`): Piece that is attacking this entity.
-        __pinned (bool): Boolean that states if this entity is pinned by an attacker.
     """
     def __init__(self, cord: Tuple[int, int]):
 
         self.__cord = cord
-
-        self.__attacked = False
-        self.__attacker = None
-        self.__pinned = False
-
-    def set_attacked(self, status: bool) -> None:
-        """Sets the entity's attacked attribute to the specified status."""
-        self.__attacked = status
-
-    def is_attacked(self) -> bool:
-        """Get the value of the entity's attacked attribute."""
-        return self.__attacked
-
-    def set_pinned(self, status: bool, attacker: Entity = None) -> None:
-        """
-        Set this entity's pinned attribute.
-
-        Args:
-            status (bool): Value the pinned attribute is to be set.
-            attacker (:obj:`Piece`, optional): Piece that is causing the pinn. 
-        """
-        self.__pinned = status
-        self.__attacker = attacker
-    
-    def is_pinned(self) -> tuple[bool, Union[Piece, None]]:
-        return self.__pinned, self.__attacker
 
 
 class Empty(Entity):
@@ -92,12 +63,19 @@ class Piece(Entity):
     Attributes:
         __player (str): Name of the player ("white" or "black").
         __moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
+        __attacked (bool): Boolean that states if this entity is attacked.
+        __attacker (:obj:`Piece`): Piece that is attacking this entity.
+        __pinned (bool): Boolean that states if this entity is pinned by an attacker.
     """
     def __init__(self, cord: Tuple[int, int], player: str, moves: Tuple[Tuple[int, int]]):
         super().__init__(cord)
         
         self.__player = player
         self.__moves = moves
+
+        self.__attacked = False
+        self.__attacker = None
+        self.__pinned = False
 
     def get_moves(self) -> Tuple[Tuple[int, int]]:
         """Get all theoretical moves of the piece."""
@@ -114,6 +92,30 @@ class Piece(Entity):
     def get_cord(self) -> Tuple[int, int]:
         """Get the coordinate of the piece."""
         return self.__cord
+
+    def set_attacked(self, status: bool) -> None:
+        """Sets the entity's attacked attribute to the specified status."""
+        self.__attacked = status
+
+    def is_attacked(self) -> bool:
+        """Get the value of the entity's attacked attribute."""
+        return self.__attacked
+
+    def set_pinned(self, status: bool) -> None:
+        """Set this pieces's pinned attribute."""
+        self.__pinned = status
+    
+    def is_pinned(self) -> tuple[bool]:
+        """Get if the piece is pinned."""
+        return self.__pinned
+
+    def set_attacker(self, attacker: Union[Type[Piece], None] = None):
+        """Set the piece's attacker."""
+        self.__attacker = attacker
+
+    def get_attacker(self) -> Union[Type[Piece], None]:
+        """Get if the piece's attacker."""
+        return self.__attacker
 
 
 class Pawn(Piece):
@@ -146,13 +148,10 @@ class Pawn(Piece):
         super().__init__(cord, player, Pawn.moves)
 
         self.__start_cord = cord
-
-        self.__attack_moves = Pawn.attack_moves
-        self.__special_move = Pawn.special_move
     
     def get_attack_moves(self) -> Tuple[Tuple[int, int]]:
         """Get all moves a pawn can use to attack entities."""
-        return self.__attack_moves
+        return Pawn.attack_moves
 
     def can_special(self) -> bool:
         """Get a boolean that states if a pawn moves 2 squares down the board."""
@@ -160,7 +159,7 @@ class Pawn(Piece):
 
     def get_special_move(self) -> Tuple[Tuple[int, int]]:
         """Get a pawns special move."""
-        return self.__special_move
+        return Pawn.special_move
 
     def __str__(self) -> str:
         """Get the string representation of the pawn."""
@@ -312,6 +311,3 @@ class King(Piece):
     def __str__(self) -> str:
         """Get the string representation of the king."""
         return "♔" if self.__player == "white" else "♚"
-        
-
-
