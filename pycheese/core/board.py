@@ -30,7 +30,7 @@ from pycheese.entity import King
 
 from pycheese.utils import Boundary
 
-from pycheese.errors import NotInPlayersPossionException
+from pycheese.errors import NotInPlayersPossesionException
 
 import copy
 
@@ -150,7 +150,7 @@ class Board:
 
         if isinstance(source_entity, Piece):
             if source_entity.get_player() != self.player:
-                raise NotInPlayersPossionException(
+                raise NotInPlayersPossesionException(
                     "The specified piece is not in the current player's possesion!")
     
             source_moves, companion_moves = self.get_piece_moves(
