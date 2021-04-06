@@ -6,5 +6,5 @@ errors and exceptios by the package in the sustainable way.
 """
 
 
-class NotInPlayersPossionException(Exception):
+class NotInPlayersPossesionException(Exception):
     pass
