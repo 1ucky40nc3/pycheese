@@ -26,9 +26,11 @@ class Entity:
 
     Attributes:
         __cord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
+        __attacked (bool): Boolean that states if this entity is attacked.
     """
     def __init__(self, cord: Tuple[int, int]):
         self.__cord = cord
+        self.__attacked = False
 
     def set_cord(self, cord: Tuple[int, int]) -> None:
         """Set the coordinate of the piece."""
@@ -37,6 +39,19 @@ class Entity:
     def get_cord(self) -> Tuple[int, int]:
         """Get the coordinate of the piece."""
         return self.__cord
+
+    def set_attacked(self, status: bool) -> None:
+        """Sets the entity's attacked attribute to the specified status."""
+        self.__attacked = status
+
+    def is_attacked(self) -> bool:
+        """Get the value of the entity's attacked attribute."""
+        return self.__attacked
+
+    def __eq__(self, other: Type[Entity]):
+        """Check two entities for equallity."""
+        return (self.__class__ == other.__class__
+                and self.get_cord() == other.get_cord())
 
 class Empty(Entity):
     """A class that represents empty squares on a chessboard.
@@ -69,9 +84,8 @@ class Piece(Entity):
     Attributes:
         __player (str): Name of the player ("white" or "black").
         __moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
-        __attacked (bool): Boolean that states if this entity is attacked.
-        __attacker (:obj:`Piece`): Piece that is attacking this entity.
         __pinned (bool): Boolean that states if this entity is pinned by an attacker.
+        __attacker (:obj:`Piece`): Piece that is attacking this entity.
     """
     def __init__(self, cord: Tuple[int, int], player: str, moves: Tuple[Tuple[int, int]]):
         super().__init__(cord)
@@ -79,9 +93,8 @@ class Piece(Entity):
         self.__player = player
         self.__moves = moves
 
-        self.__attacked = False
-        self.__attacker = None
         self.__pinned = False
+        self.__attacker = None
 
     def get_moves(self) -> Tuple[Tuple[int, int]]:
         """Get all theoretical moves of the piece."""
@@ -90,14 +103,6 @@ class Piece(Entity):
     def get_player(self) -> str:
         """Get the playership attribute of the piece."""
         return self.__player
-
-    def set_attacked(self, status: bool) -> None:
-        """Sets the entity's attacked attribute to the specified status."""
-        self.__attacked = status
-
-    def is_attacked(self) -> bool:
-        """Get the value of the entity's attacked attribute."""
-        return self.__attacked
 
     def set_pinned(self, status: bool) -> None:
         """Set this pieces's pinned attribute."""
