@@ -18,19 +18,19 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
-from pycheese.entity import Entity
-from pycheese.entity import Empty
-from pycheese.entity import Piece
-from pycheese.entity import Pawn
-from pycheese.entity import Knight
-from pycheese.entity import Bishop
-from pycheese.entity import Rook
-from pycheese.entity import Queen
-from pycheese.entity import King
+from pycheese.core.entity import Entity
+from pycheese.core.entity import Empty
+from pycheese.core.entity import Piece
+from pycheese.core.entity import Pawn
+from pycheese.core.entity import Knight
+from pycheese.core.entity import Bishop
+from pycheese.core.entity import Rook
+from pycheese.core.entity import Queen
+from pycheese.core.entity import King
 
-from pycheese.utils import Boundary
+from pycheese.core.utils import Boundary
 
-from pycheese.errors import NotInPlayersPossesionException
+from pycheese.core.error import NotInPlayersPossesionException
 
 import copy
 
@@ -50,7 +50,7 @@ class Board:
         self.board = self.initial_board()
         self.update_attacked_squares()
 
-    def initial_board(self):
+    def initial_board(self) -> List[List[Type[Entity]]]:
         """Create a nested list of Entitys that represents the chessboard.
 
         Note:
@@ -216,7 +216,7 @@ class Board:
         return self.state
 
     def get_piece_moves(self, piece: Type[Piece], piece_cord: Tuple[int, int],
-                        attacking: bool = False, board: List[List[Type[Entity]]] = None):
+                        attacking: bool = False, board: List[List[Type[Entity]]] = None) -> List[Tupe[int, int]]:
         """Find a pieces legal moves.
 
         Args:
@@ -387,7 +387,7 @@ class Board:
             dx = attacker_x - piece_x
             dy = attacker_y - piece_y
 
-            def normalize(x: int):
+            def normalize(x: int) -> int:
                 """Normalize an integer between -1 and 1."""
                 if x > 0:
                     return 1
@@ -604,7 +604,7 @@ class Board:
             player,
             board=board,
             attacking=True, 
-            with_pieces=with_attackers,
+            with_pieces=with_pieces,
         )
 
         return attacked_squares
@@ -625,9 +625,10 @@ class Board:
         """
         for row in self.board:
             for square in row:
-                if square.is_pinned():
+                if isinstance(square, Piece) and square.is_pinned():
                     square.set_attacked(False)
                     square.set_pinned(False)
+                    square.set_attacker(None)
 
         attacked_squares = self.get_attacked_squares()
         for square in attacked_squares:
