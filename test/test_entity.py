@@ -13,9 +13,6 @@ Example:
 """
 
 
-from typing import Union
-from typing import List
-from typing import Any
 from typing import Type
 from typing import Tuple
 
@@ -54,9 +51,13 @@ def test_entity():
 
     for obj in [entity, empty, piece]:
         assert_obj_attr(obj, "_Entity__cord", cord)
+        assert_obj_attr(obj, "_Entity__attacked", False)
 
         assert_obj_func(obj, "set_cord", [(1, 1)], None)
         assert_obj_func(obj, "get_cord", None, (1, 1))
+
+        assert_obj_func(obj, "set_attacked", [True], None)
+        assert_obj_func(obj, "is_attacked", None, True)
 
 
 def test_piece():
@@ -92,7 +93,7 @@ def test_piece():
         assert_obj_attr(obj, "_Piece__player", player)
         assert_obj_attr(obj, "_Piece__moves", _moves(obj))
 
-        assert_obj_attr(obj, "_Piece__attacked", False)
+        
         assert_obj_attr(obj, "_Piece__attacker", None)
         assert_obj_attr(obj, "_Piece__pinned", False)
 
@@ -104,6 +105,7 @@ def test_piece():
 
         assert_obj_func(obj, "set_attacked", [True], None)
         assert_obj_func(obj, "is_attacked", None, True)
+
         assert_obj_func(obj, "set_pinned", [True], None)
         assert_obj_func(obj, "is_pinned", None, (True))
         assert_obj_func(obj, "set_attacker", [piece], None)
