@@ -28,9 +28,15 @@ class Entity:
         __cord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
     """
     def __init__(self, cord: Tuple[int, int]):
-
         self.__cord = cord
 
+    def set_cord(self, cord: Tuple[int, int]) -> None:
+        """Set the coordinate of the piece."""
+        self.__cord = cord
+
+    def get_cord(self) -> Tuple[int, int]:
+        """Get the coordinate of the piece."""
+        return self.__cord
 
 class Empty(Entity):
     """A class that represents empty squares on a chessboard.
@@ -85,14 +91,6 @@ class Piece(Entity):
         """Get the playership attribute of the piece."""
         return self.__player
 
-    def set_cord(self, cord: Tuple[int, int]) -> None:
-        """Set the coordinate of the piece."""
-        self.__cord = cord
-
-    def get_cord(self) -> Tuple[int, int]:
-        """Get the coordinate of the piece."""
-        return self.__cord
-
     def set_attacked(self, status: bool) -> None:
         """Sets the entity's attacked attribute to the specified status."""
         self.__attacked = status
@@ -109,7 +107,7 @@ class Piece(Entity):
         """Get if the piece is pinned."""
         return self.__pinned
 
-    def set_attacker(self, attacker: Union[Type[Piece], None] = None):
+    def set_attacker(self, attacker: Union[Type[Piece], None] = None) -> None:
         """Set the piece's attacker."""
         self.__attacker = attacker
 
