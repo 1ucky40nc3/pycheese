@@ -37,3 +37,5 @@ class Boundary:
             >>> assert boundary.accepts(5) == False
         """
         return value >= self.__min and value < self.__max
+
+

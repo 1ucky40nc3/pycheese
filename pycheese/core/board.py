@@ -96,32 +96,32 @@ class Board:
         
         return board
 
-    def __call__(self, source_cord: Union[str, Tuple[int, int]], 
-                 target_cord: Union[str, Tuple[int, int], None] = None, 
+    def __call__(self, source_coord: Union[str, Tuple[int, int]], 
+                 target_coord: Union[str, Tuple[int, int], None] = None, 
                  promotion_target: Union[str, None] = None):
         """Chessboard interface.
 
         This function servers as an interface to the chessboard.
         To do so different behaviors are invoked with different inputs.
 
-        The minimal input is the `source_cord`, a coordinate on the board wich
+        The minimal input is the `source_coord`, a coordinate on the board wich
         shall be focused to check for legal moves of the current player. 
 
-        The `target_cord` parameter must be specified additionally
+        The `target_coord` parameter must be specified additionally
         to move a piece to a desired coordinate - the target coordinate.
-        The code checks if `target_cord` is in the legal moves the player
-        can make with the piece identified via `source_cord`. If this holds
+        The code checks if `target_coord` is in the legal moves the player
+        can make with the piece identified via `source_coord`. If this holds
         true the move will be executed and the next players turn will be
         initiated.
 
         If a pawn shall be promoted the `promotion_target` parameter must be specified.
         This parameter identifies the type of piece that shall be spawned at the
-        `target_cord` coordinate on the chessboard. The pawn at the `source_cord`
+        `target_coord` coordinate on the chessboard. The pawn at the `source_coord`
         coordinate will be substituted with an entity of type `Empty`.
 
         Args:
-            source_cord (str or :obj:`tuple` of :obj:`int`): Initial coordinate of entity on board.
-            target_cord (str or :obj:`tuple` of :obj:`int`, optional): Target coordinate of entity on board.
+            source_coord (str or :obj:`tuple` of :obj:`int`): Initial coordinate of entity on board.
+            target_coord (str or :obj:`tuple` of :obj:`int`, optional): Target coordinate of entity on board.
             promotion_target (str, optional): String that identifies piece to promote pawn into.
 
         Returns:
@@ -133,63 +133,101 @@ class Board:
             >>> board("e2")
             >>> board("e2", "e4")
         """
-        if type(source_cord) is str:
-            source_cord = self.translate_cord(source_cord)
+        status = None
 
-        if target_cord is None:
-            target_cord = source_cord
+        if type(source_coord) is str:
+            source_coord = self.translate_coord(source_coord)
 
-        if type(target_cord) is str:
-            target_cord = self.translate_cord(target_cord)
+        if target_coord is None:
+            target_coord = source_coord
 
-        source_x, source_y = source_cord
-        target_x, target_y = target_cord
+        if type(target_coord) is str:
+            target_coord = self.translate_coord(target_coord)
+
+        source_x, source_y = source_coord
+        target_x, target_y = target_coord
         
         source_entity = self.board[source_y][source_x]
         target_entity = self.board[target_y][target_x]
 
         if isinstance(source_entity, Piece):
+
             if source_entity.get_player() != self.player:
                 raise NotInPlayersPossesionException(
                     "The specified piece is not in the current player's possesion!")
     
-            source_moves, companion_moves = self.get_piece_moves(
-                source_entity, source_cord)
+            source_moves, others = self.get_piece_moves(
+                source_entity, source_coord)
 
-            if target_cord in source_moves:
-
+            if target_coord in source_moves:
                 player_moves = self.get_player_moves()
                 if self.state == "check":
-                    if any(player_moves):
+                    if player_moves:
                         self.state = "ongoing"
                     else:
                         self.state = "checkmate"
-                        return self.state
+                        return {
+                            "state": self.state, 
+                            "source_coord": source_coord, 
+                            "target_coord": target_coord,
+                            "status": status,
+                        }
             
                 else:
-                    if not any(player_moves):
+                    if not player_moves:
                         self.state = "stalemate"
-                        return self.state
+                        return {
+                            "state": self.state, 
+                            "source_coord": source_coord, 
+                            "target_coord": target_coord,
+                            "status": status,
+                        }
             
-                if companion_moves:
-                    companion, (x, y) = companion_moves[0]
-                    companion_x, companion_y = companion.get_cord()
-                    companion.set_cord((x, y))
-                    self.board[y][x] = companion
-                    self.board[companion_y][companion_x] = Empty((companion_x, companion_y))
+                if others:
+                    # Find the companion in the
+                    for element in others:
+                        companion = element["companion"]
+                        companion_move = element["companion_move"]
+                        piece_move = element["piece_move"]
 
-                    x, y = (x - 1, y) if (x - 1, y) in source_moves else (x + 1, y)
-                    source_entity.set_cord((x, y))
-                    self.board[y][x] = source_entity
-                    self.board[source_y][source_x] = Empty((source_x, source_y))
+                        if target_coord == piece_move:
+                            companion_x, companion_y = companion.get_coord()
+                            companion.set_coord((x, y))
+
+                            self.board[y][x] = companion
+                            self.board[companion_y][companion_x] = Empty((companion_x, companion_y))
+
+                            x, y = (x - 1, y) if (x - 1, y) in source_moves else (x + 1, y)
+                            source_entity.set_coord((x, y))
+
+                            self.board[y][x] = source_entity
+                            self.board[source_y][source_x] = Empty((source_x, source_y))
+
+                            status = "castling"
+                            break
                 else:
-                    if (promotion_target is not None and
-                        isinstance(source_entity, Pawn) and
+                    if (isinstance(source_entity, Pawn) and
                         (target_y == 0 or target_y == 7)):
+                        # Request promotion target if is None.
+                        if promotion_target is None:
+                            status = "missing_promotion_target"
+                            return {
+                                "state": self.state, 
+                                "source_coord": source_coord, 
+                                "target_coord": target_coord,
+                                "status": status,  
+                            }
+
                         self.board[target_y][target_x] = self.get_promotion_target(
-                            promotion_target, target_cord)
+                            promotion_target, target_coord)
+
+                        status = "promotion"
+
                     else:
-                        source_entity.set_cord(target_cord)
+                        if isinstance(self.board[target_y][target_x], Piece):
+                            status = "captures"
+                            
+                        source_entity.set_coord(target_coord)
                         self.board[target_y][target_x] = source_entity
 
                     self.board[source_y][source_x] = Empty((source_x, source_y))
@@ -206,22 +244,27 @@ class Board:
                 print("Source moves:", source_moves)
             else:
                 print("Source:", str(source_entity), "  Target:", str(target_entity))
-                print("Source moves:", source_moves, "\nCompanion moves:", companion_moves, "\n")
+                print("Source moves:", source_moves, "\nCompanion moves:", others, "\n")
 
-            if target_cord == source_cord:
+            if target_coord == source_coord:
                 self.print(squares=source_moves)
             else:
                 self.print()
         
-        return self.state
+        return {
+            "state": self.state, 
+            "source_coord": source_coord, 
+            "target_coord": target_coord,
+            "status": status,  
+        }
 
-    def get_piece_moves(self, piece: Type[Piece], piece_cord: Tuple[int, int],
+    def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int],
                         attacking: bool = False, board: List[List[Type[Entity]]] = None) -> List[Tupe[int, int]]:
         """Find a pieces legal moves.
 
         Args:
             piece (:obj:`Piece`): A piece of the current player.
-            piece_cord (:obj:`tuple` of :obj:`int`): Coordinate of the piece on the chessboard.
+            piece_coord (:obj:`tuple` of :obj:`int`): Coordinate of the piece on the chessboard.
             attacking (bool, optional): States if only moves that attack enemy pieces shall be returned.
             board (:obj:`list` of :obj:`list` of :obj:`Entity`, optional): List representing a board.
 
@@ -229,23 +272,28 @@ class Board:
             tuple: piece_moves and companion moves
                 * piece_moves (:obj:`list` of :obj:`list` of int): 
                     List of coordinates that can be legally accessed by the piece.
-                * companion_moves (:obj:`list` of :obj:`tuple` of :obj:`Piece` 
-                                   and :obj:`list` of :obj:`tuple` of :obj:`int`):
-                    List of piece and move pairs (e.g. for castling).
+                * others (:obj:`list` of :obj:`dict`):
+                    List of dicts of data associated with other legal moves (e.g. for castling).
+                    The dict inside the list are of shape:
+                        {
+                            "companion": :obj:`Piece`,
+                            "others": :obj:`list` of :obj:`tuple` of :obj:`int`
+                            "piece_moves": :obj:`list` of :obj:`tuple` of :obj:`int`
+                        }
 
         Example:
             >>> board = Board()
-            >>> cord = (0, 0)
-            >>> board.get_piece_moves(board.board[cord[1], cord[0]], cord)
+            >>> coord = (0, 0)
+            >>> board.get_piece_moves(board.board[coord[1], coord[0]], coord)
         """
         piece_moves = []
-        companion_moves = []
+        others = []
 
         # If no `board` is specified select the position (`self.board`).
         if board is None:
             board = self.board
 
-        piece_x, piece_y = piece_cord
+        piece_x, piece_y = piece_coord
         moves = piece.get_moves()
 
         boundary = Boundary(0, 8)
@@ -258,9 +306,9 @@ class Board:
                 dy = - dy
 
             # Traverse the path given by the movement of the `piece` types
-            # from the `piece` coordinate and record the coordinates
+            # from the `piece` coordinate and recoord the coordinates
             # until another `piece` was found or the coordinate is out of bounds.
-            # These recorded coordinates are regarded as the legal moves.
+            # These recoorded coordinates are regarded as the legal moves.
             
             x = piece_x
             y = piece_y
@@ -350,7 +398,7 @@ class Board:
                             attacking_moves.append((x, y))
                     # Add the coordinate to `attacking_moves` regardless
                     # of the fact that a ``Piece`` is at the coordinate.
-                    # Because all attacking moves are recorded.
+                    # Because all attacking moves are recoorded.
                     # Check only if a chess piece is in the opponent's possession.
                     elif attacking:
                         if isinstance(square, Piece):
@@ -358,7 +406,7 @@ class Board:
                                 attacking_moves.append((x, y))
                         else:
                             attacking_moves.append((x, y))                        
-            # If only attacking moves shall be recorded,
+            # If only attacking moves shall be recoorded,
             # `piece_moves` equal `attacking_moves`.
             if attacking:
                 piece_moves = attacking_moves
@@ -383,7 +431,7 @@ class Board:
         if piece.is_pinned():
             attacker = piece.get_attacker()
 
-            attacker_x, attacker_y = attacker.get_cord()
+            attacker_x, attacker_y = attacker.get_coord()
             dx = attacker_x - piece_x
             dy = attacker_y - piece_y
 
@@ -450,7 +498,7 @@ class Board:
                         king = piece
                         break
                 
-                king_cord = king.get_cord()
+                king_coord = king.get_coord()
 
                 # List of all moves to avoid check.
                 tmp_piece_moves = []
@@ -474,7 +522,7 @@ class Board:
 
                         tmp_attacked_squares = self.get_attacked_squares(board=tmp_board)
 
-                        if king_cord not in tmp_attacked_squares:
+                        if king_coord not in tmp_attacked_squares:
                             tmp_piece_moves.append(move)
 
                 self.state = "check"
@@ -482,7 +530,7 @@ class Board:
 
         # Check if the player can castle.
         # To so first check if the king has already moved or a given rook
-        # who is identified by the side the `target_cord` leads to.
+        # who is identified by the side the `target_coord` leads to.
         # Afterwards check if the enemy is attacking squares that
         # are needed for castling or if theese squares are .
         if (self.state != "check"
@@ -511,10 +559,17 @@ class Board:
                                 break
 
                         if empty:
-                            piece_moves.append((piece_x + step * 2, piece_y))                            
-                            companion_moves.append((companion, (piece_x + -step, piece_y)))
+                            piece_move = (piece_x + step * 2, piece_y)
+                            piece_moves.append(piece_move)
+                            
+                            companion_move = (piece_x + -step, piece_y)
+                            others.append({
+                                "companion": companion,
+                                "companion_move": companion_move,
+                                "piece_move": piece_move,
+                            })
 
-        return piece_moves, companion_moves
+        return piece_moves, others
 
     def get_player_pieces(self, player: str, 
                           board: List[List[Type[Entity]]] = None) -> List[Type[Piece]]:
@@ -570,13 +625,13 @@ class Board:
         
         for piece in pieces:
             piece_moves = self.get_piece_moves(
-                piece, piece.get_cord(), board=board, attacking=attacking)
+                piece, piece.get_coord(), board=board, attacking=attacking)
 
             for move in piece_moves[0]:
                 moves.append(move)
         
             if with_pieces:
-                moves.append(piece.get_cord())
+                moves.append(piece.get_coord())
         
         return moves
 
@@ -636,7 +691,7 @@ class Board:
             self.board[y][x].set_attacked(True)
     
     def get_promotion_target(self, promotion_target: str, 
-                             target_cord: Tuple[int]) -> Type[Piece]:
+                             target_coord: Tuple[int]) -> Type[Piece]:
         """Get the piece that is requested when a pawn reaches the enemy's baseline.
 
         Note:
@@ -644,34 +699,34 @@ class Board:
 
         Args:
             promotion_target (str, optional): String that identifies piece to promote pawn into.
-            target_cord (str or :obj:`tuple` of :obj:`int`, optional): Target coordinate of entity on board.    
+            target_coord (str or :obj:`tuple` of :obj:`int`, optional): Target coordinate of entity on board.    
         """
         if promotion_target == "queen":
-            return Queen(target_cord, self.player)
+            return Queen(target_coord, self.player)
         elif promotion_target == "rook":
-            return Rook(target_cord, self.player)
+            return Rook(target_coord, self.player)
         elif promotion_target == "bishop":
-            return Bishop(target_cord, self.player)
+            return Bishop(target_coord, self.player)
         elif promotion_target == "knight":
-            return Knight(target_cord, self.player)
+            return Knight(target_coord, self.player)
 
     def next_turn(self) -> None:
         """Change the player the indicate the next turn."""
         self.player = "white" if self.player == "black" else "black"
     
-    def translate_cord(self, cord: str) -> Tuple[int]:
+    def translate_coord(self, coord: str) -> Tuple[int]:
         """Translate a coordinate in chess notation into the internal representation.
         
         Examples: 'a1' --> (0, 7); 'h8' --> (7, 0)
 
         Args:
-            cord -- coordinate in chess notation (lowercase letter [a-h] followed by integer [1-8])
+            coord -- coordinate in chess notation (lowercase letter [a-h] followed by integer [1-8])
 
         Returns:
             tuple -- translated (x, y) coordinate
         """
-        x = cord[0]
-        y = cord[1]
+        x = coord[0]
+        y = coord[1]
 
         x = ord(x) - ord("a")
         y = abs(int(y) - 8)

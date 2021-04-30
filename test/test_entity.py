@@ -39,22 +39,22 @@ def test_entity():
     Assert their behavior.
     """
     # Sample values
-    cord = (0, 0)
+    coord = (0, 0)
     player = "white"
     moves = ((0, 0),)
 
     # Instance of the abstract class
-    entity = Entity(cord)
+    entity = Entity(coord)
     # Instances of first level children of the abstract class.
-    empty = Empty(cord)
-    piece = Piece(cord, player, moves)
+    empty = Empty(coord)
+    piece = Piece(coord, player, moves)
 
     for obj in [entity, empty, piece]:
-        assert_obj_attr(obj, "_Entity__cord", cord)
+        assert_obj_attr(obj, "_Entity__coord", coord)
         assert_obj_attr(obj, "_Entity__attacked", False)
 
-        assert_obj_func(obj, "set_cord", [(1, 1)], None)
-        assert_obj_func(obj, "get_cord", None, (1, 1))
+        assert_obj_func(obj, "set_coord", [(1, 1)], None)
+        assert_obj_func(obj, "get_coord", None, (1, 1))
 
         assert_obj_func(obj, "set_attacked", [True], None)
         assert_obj_func(obj, "is_attacked", None, True)
@@ -63,32 +63,32 @@ def test_entity():
 def test_piece():
     """Test the functionality of the abstract Piece class.
 
-    Check if the Piece class`s behavoir is accordingly.
+    Check if the Piece class`s behavoir is accoordingly.
     To do so initialize an instance of the abstract class and
     instances of the first-level children of the abstract class.
     Assert their behavior.
     """
     # Sample values
-    cord = (0, 0)
+    coord = (0, 0)
     player = "white"
     moves = ((0, 0),)
 
     # Instance of the abstract class
-    piece = Piece(cord, player, moves)
+    piece = Piece(coord, player, moves)
     # Instances of first level children of the abstract class.
-    pawn = Pawn(cord, player)
-    knight = Knight(cord, player)
-    bishop = Bishop(cord, player)
-    rook = Rook(cord, player)
-    queen = Queen(cord, player)
-    king = King(cord, player)
+    pawn = Pawn(coord, player)
+    knight = Knight(coord, player)
+    bishop = Bishop(coord, player)
+    rook = Rook(coord, player)
+    queen = Queen(coord, player)
+    king = King(coord, player)
 
     def _moves(obj: Type[Piece]) -> Tuple[Tuple[int, int]]: 
         """Get a class`s moves if moves is a class attribute."""
         return type(obj).moves if "moves" in dir(type(obj)) else moves
 
     for obj in [piece, pawn, knight, bishop, rook, queen, king]:
-        assert_obj_attr(obj, "_Entity__cord", cord)
+        assert_obj_attr(obj, "_Entity__coord", coord)
 
         assert_obj_attr(obj, "_Piece__player", player)
         assert_obj_attr(obj, "_Piece__moves", _moves(obj))
@@ -97,8 +97,8 @@ def test_piece():
         assert_obj_attr(obj, "_Piece__attacker", None)
         assert_obj_attr(obj, "_Piece__pinned", False)
 
-        assert_obj_func(obj, "set_cord", [(1, 1)], None)
-        assert_obj_func(obj, "get_cord", None, (1, 1))
+        assert_obj_func(obj, "set_coord", [(1, 1)], None)
+        assert_obj_func(obj, "get_coord", None, (1, 1))
 
         assert_obj_func(obj, "get_player", None, player)
         assert_obj_func(obj, "get_moves", None, _moves(obj))
