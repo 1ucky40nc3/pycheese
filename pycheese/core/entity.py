@@ -50,8 +50,8 @@ class Entity:
 
     def __eq__(self, other: Type[Entity]):
         """Check two entities for equallity."""
-        return (self.__class__ == other.__class__
-                and self.get_coord() == other.get_coord())
+        return (self.__class__ == other.__class__ and
+                self.get_coord() == other.get_coord())
 
 class Empty(Entity):
     """A class that represents empty squares on a chessboard.

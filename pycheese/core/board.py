@@ -125,15 +125,19 @@ class Board:
             promotion_target (str, optional): String that identifies piece to promote pawn into.
 
         Returns:
-            # TODO: RETURN DICT AS OUTPUT
-            str: The boards state.
+            dict: The boards state.
 
         Example:
             >>> board = Board()
             >>> board("e2")
             >>> board("e2", "e4")
+        
+        Todo:
+            # TODO: Implement draw by default.
+            # TODO: Add correct output in docstring.
+
         """
-        status = None
+        status = {"message": None, "extra": None}
 
         if type(source_coord) is str:
             source_coord = self.translate_coord(source_coord)
@@ -184,7 +188,6 @@ class Board:
                         }
             
                 if others:
-                    # Find the companion in the
                     for element in others:
                         companion = element["companion"]
                         companion_move = element["companion_move"]
@@ -203,7 +206,8 @@ class Board:
                             self.board[y][x] = source_entity
                             self.board[source_y][source_x] = Empty((source_x, source_y))
 
-                            status = "castling"
+                            side = "queenside" if target_x < 4 else "kingside" 
+                            status = {"message": "castle", "extra": side}
                             break
                 else:
                     if (isinstance(source_entity, Pawn) and
@@ -221,11 +225,12 @@ class Board:
                         self.board[target_y][target_x] = self.get_promotion_target(
                             promotion_target, target_coord)
 
-                        status = "promotion"
+                        # TODO: Check castle behavoir rook gets chosen. (Note: New rook hasn't moved.)
+                        status = {"message": "promotion", "extra": promotion_target}
 
                     else:
                         if isinstance(self.board[target_y][target_x], Piece):
-                            status = "captures"
+                            status = {"message": "captures", "extra": None}
                             
                         source_entity.set_coord(target_coord)
                         self.board[target_y][target_x] = source_entity
@@ -236,6 +241,7 @@ class Board:
                     isinstance(source_entity, King)):
                     source_entity.did_move()
 
+                # Set up for next turn.
                 self.next_turn()
                 self.update_attacked_squares()
 
