@@ -6,8 +6,34 @@ a chessboard in an object-oriented style.
 
 Example:
     >>> board = Board()
-    >>> board("e2")
-    >>> board("e2", "e4")
+    >>> print(b.show())
+    ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
+    ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+    ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+    >>> board.move((0, 6), (0, 5))
+    {
+        'state': 'ongoing', 
+        'source_coord': (0, 6), 
+        'target_coord': (0, 5), 
+        'event': {
+            'type': None, 
+            'extra': None
+        }
+    }
+    >>> print(board.show())
+    ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
+    ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ♙ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+    ⊡ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+    ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 """
 
 
@@ -136,7 +162,7 @@ class Board:
 
         Example:
             >>> board = Board()
-            >>> board((0, 6), (0, 5))
+            >>> board.move((0, 6), (0, 5))
             {
                 "state": "ongoing",
                 "source_coord": (0, 6),
@@ -187,7 +213,8 @@ class Board:
                     "The move from the source coordinate to the target coordinate is not legal!")
 
             else:
-                player_moves = self.get_player_moves()
+                player_moves = self.get_player_moves(self.player)
+
                 if self.state == "check":
                     if player_moves:
                         self.state = "ongoing"
@@ -300,8 +327,10 @@ class Board:
 
         Example:
             >>> board = Board()
-            >>> coord = (0, 0)
-            >>> board.get_piece_moves(board.board[coord[1], coord[0]], coord)
+            >>> x, y = (0, 6)
+            >>> piece = board.board[y][x]
+            >>> board.get_piece_moves(piece, (x, y))
+            ([(0, 5), (0, 4)], [])
         """
         piece_moves = []
         others = []
@@ -601,7 +630,21 @@ class Board:
 
         Example:
             >>> board = Board()
-            >>> board.get_player_pieces("white")
+            >>> pieces = board.get_player_pieces("white")
+            >>> [piece.to_json() for piece in pieces]
+            [
+                {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 6}, 'pinned': False, 'attacker': None}, 
+                ...
+                {'type': 'Pawn', 'player': 'white', 'coord': {'x': 7, 'y': 6}, 'pinned': False, 'attacker': None},
+                {'type': 'Rook', 'player': 'white', 'coord': {'x': 0, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'Knight', 'player': 'white', 'coord': {'x': 1, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'Bishop', 'player': 'white', 'coord': {'x': 2, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'Queen', 'player': 'white', 'coord': {'x': 3, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'Bishop', 'player': 'white', 'coord': {'x': 5, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'Knight', 'player': 'white', 'coord': {'x': 6, 'y': 7}, 'pinned': False, 'attacker': None}, 
+                {'type': 'Rook', 'player': 'white', 'coord': {'x': 7, 'y': 7}, 'pinned': False, 'attacker': None}
+            ]
         """
         player_pieces = []
 
@@ -666,6 +709,10 @@ class Board:
         Example:
             >>> board = Board()
             >>> board.get_attacked_squares()
+            [
+                (0, 2), (2, 2), (5, 2), (7, 2), (1, 2), (0, 2), (2, 2), (1, 2), (3, 2), 
+                (2, 2), (4, 2), (3, 2), (5, 2), (4, 2), (6, 2), (5, 2), (7, 2), (6, 2)
+            ]
         """
         if board is None:
             board = self.board
@@ -688,12 +735,30 @@ class Board:
         to update the chessboard and account for the new position.
 
         Note:
-            This function is called automatically.
+            This function is called automatically in `self.move`.
 
         Example:
             >>> board = Board()
-            >>> board("e2", "e4")
+            >>> board.move((0, 6), (0, 5))
+            {
+                'state': 'ongoing', 
+                'source_coord': (0, 6), 
+                'target_coord': (0, 5), 
+                'event': {
+                    'type': None, 
+                    'extra': None
+                }
+            }
             >>> board.update_attacked_squares()
+            >>> print(board.show())
+            ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
+            ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ♙ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+            ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
         """
         for row in self.board:
             for square in row:
