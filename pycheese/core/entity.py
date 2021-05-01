@@ -120,6 +120,35 @@ class Piece(Entity):
         """Get if the piece's attacker."""
         return self.__attacker
 
+    def __hash__(self) -> int:
+        """Get the hash value of this object."""
+        return hash((
+            self.__class__.__name__,
+            self.get_player(),
+            self.get_coord(),
+        ))
+
+    def to_json(self, recurse: bool = True) -> dict:
+        """Return a JSON representation of this objects data."""
+        # Convert the coordinate into a JSON object.
+        x, y = self.get_coord()
+        coord = {"x": x, "y": y}
+        
+        # Represent the attacker via it's coordinate 
+        # on the board, if the attacker exists.
+        attacker = self.get_attacker()
+
+        if attacker:
+            attacker = attacker.get_coord()
+
+        return {
+            "type": self.__class__.__name__,
+            "player": self.get_player(),
+            "coord": coord,
+            "pinned": self.is_pinned(),
+            "attacker": attacker
+        }
+
 
 class Pawn(Piece):
     """Object-oriented representation of a pawn.
@@ -166,7 +195,7 @@ class Pawn(Piece):
 
     def __str__(self) -> str:
         """Get the string representation of the pawn."""
-        return "♙" if self.__player == "white" else "♟︎"
+        return "♙" if self.get_player() == "white" else "♟︎"
 
 
 class Knight(Piece):
@@ -192,7 +221,7 @@ class Knight(Piece):
 
     def __str__(self) -> str:
         """Get the string representation of the knight."""
-        return "♘" if self.__player == "white" else "♞"
+        return "♘" if self.get_player() == "white" else "♞"
 
 
 class Bishop(Piece):
@@ -217,7 +246,7 @@ class Bishop(Piece):
 
     def __str__(self) -> str:
         """Get the string representation of the bishop."""
-        return "♗" if self.__player == "white" else "♝"
+        return "♗" if self.get_player() == "white" else "♝"
 
 class Rook(Piece):
     """Object-oriented represenation of a rook.
@@ -252,7 +281,7 @@ class Rook(Piece):
 
     def __str__(self) -> str:
         """Get the string representation of the rook."""
-        return "♖" if self.__player == "white" else "♜"
+        return "♖" if self.get_player() == "white" else "♜"
 
 class Queen(Piece):
     """Object-oriented represenation of a queen.
@@ -277,7 +306,7 @@ class Queen(Piece):
 
     def __str__(self) -> str:
         """Get the string representation of the queen."""
-        return "♕" if self.__player == "white" else "♛"
+        return "♕" if self.get_player() == "white" else "♛"
 
 class King(Piece):
     """Object oriented represenation of a king.
@@ -313,4 +342,4 @@ class King(Piece):
 
     def __str__(self) -> str:
         """Get the string representation of the king."""
-        return "♔" if self.__player == "white" else "♚"
+        return "♔" if self.get_player() == "white" else "♚"

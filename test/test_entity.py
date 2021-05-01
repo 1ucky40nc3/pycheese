@@ -111,3 +111,9 @@ def test_piece():
         assert_obj_func(obj, "set_attacker", [piece], None)
         assert_obj_func(obj, "get_attacker", None, piece)
 
+        assert "__hash__" in dir(obj)
+
+    pawn_json = {'type': 'Pawn', 'player': 'white', 'coord': {'x': 1, 'y': 1}, 'pinned': True, 'attacker': (1, 1)}
+    assert pawn_json == pawn.to_json()
+
+    
