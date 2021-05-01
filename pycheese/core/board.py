@@ -174,7 +174,7 @@ class Board:
                             "state": self.state, 
                             "source_coord": source_coord, 
                             "target_coord": target_coord,
-                            "status": status,
+                            "status": status
                         }
             
                 else:
@@ -184,7 +184,7 @@ class Board:
                             "state": self.state, 
                             "source_coord": source_coord, 
                             "target_coord": target_coord,
-                            "status": status,
+                            "status": status
                         }
             
                 if others:
@@ -219,7 +219,7 @@ class Board:
                                 "state": self.state, 
                                 "source_coord": source_coord, 
                                 "target_coord": target_coord,
-                                "status": status,  
+                                "status": status  
                             }
 
                         self.board[target_y][target_x] = self.get_promotion_target(
@@ -261,7 +261,7 @@ class Board:
             "state": self.state, 
             "source_coord": source_coord, 
             "target_coord": target_coord,
-            "status": status,  
+            "status": status
         }
 
     def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int],

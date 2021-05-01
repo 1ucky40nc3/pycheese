@@ -32,27 +32,19 @@ from test.utils import assert_obj_attr
 from test.utils import assert_obj_func
 
 
-def initial_board() -> List[List[Type[Entity]]]:
-    """Create a nested list of Entitys that represents the chessboard."""
-    board = []
+def white_pawns() -> List[Type[Pawn]]:
+    """Return a list of all of white's pawns."""
+    return [Pawn((i, 6), "white") for i in range(8)]
 
-    board.append([
-        Rook((0, 0), "black"), 
-        Knight((1, 0), "black"), 
-        Bishop((2, 0), "black"), 
-        Queen((3, 0), "black"), 
-        King((4, 0), "black"), 
-        Bishop((5, 0), "black"), 
-        Knight((6, 0), "black"), 
-        Rook((7, 0), "black"),
-    ])
-    board.append([Pawn((i, 1), "black") for i in range(8)])
 
-    for i in range(4):
-        board.append([Empty((j, i + 2)) for j in range(8)])
+def black_pawns() -> List[Type[Pawn]]:
+    """Return a list of all of black's pawns."""
+    return [Pawn((i, 1), "black") for i in range(8)]
 
-    board.append([Pawn((i, 6), "white") for i in range(8)])
-    board.append([
+
+def white_pieces() -> List[Type[Piece]]:
+    """Return a list of all of white's pieces. (Note: Pawns exclusive.)"""
+    return [
         Rook((0, 7), "white"), 
         Knight((1, 7), "white"), 
         Bishop((2, 7), "white"), 
@@ -61,14 +53,43 @@ def initial_board() -> List[List[Type[Entity]]]:
         Bishop((5, 7), "white"), 
         Knight((6, 7), "white"), 
         Rook((7, 7), "white"),
-    ])
+    ]
+
+
+def black_pieces() -> List[Type[Piece]]:
+    """Return a list of all of black's pieces. (Note: Pawns exclusive.)"""
+    return [
+        Rook((0, 0), "black"), 
+        Knight((1, 0), "black"), 
+        Bishop((2, 0), "black"), 
+        Queen((3, 0), "black"), 
+        King((4, 0), "black"), 
+        Bishop((5, 0), "black"), 
+        Knight((6, 0), "black"), 
+        Rook((7, 0), "black"),
+    ]
+
+
+def initial_board() -> List[List[Type[Entity]]]:
+    """Create a nested list of Entitys that represents the chessboard."""
+    board = []
+
+    board.append(black_pieces())
+    board.append(black_pawns())
+
+    for i in range(4):
+        board.append([Empty((j, i + 2)) for j in range(8)])
+
+    board.append(white_pawns())
+    board.append(white_pieces())
     
     return board
+
 
 def test_board():
     """Test the functionality of the Board class.
 
-    Check if the Entity class`s behavoir is accordingly.
+    Check if the Boards class`s behavoir is correct.
     To do so initialize an instance of the class and assert
     attribute and function functionality.
     """
@@ -78,6 +99,90 @@ def test_board():
     assert_obj_attr(board, "player", "white")
     assert_obj_attr(board, "board", initial_board())
 
+
+def test_initial_board():
+    """Test the a boards `get_player_pieces` function.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    board = Board()
+
     assert_obj_func(board, "initial_board", None, initial_board())
-    # assert_obj_func(board, "__call__", )
+
+
+def test_get_piece_moves():
+    """Test the a boards `get_piece_moves` function.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    board = Board()
+
+    test_cases = [
+        {
+            "piece_moves": ([], []),
+            "coord": {"x": 0, "y": 7}
+        },
+        {
+            "piece_moves": ([(0, 5), (0, 4)], []),
+            "coord": {"x": 0, "y": 6}
+        }
+    ]
+
+    for case in test_cases:
+        x, y = case["coord"]["x"], case["coord"]["y"]
+
+        piece = board.board[y][x]
+        board_piece_moves = board.get_piece_moves(piece, (x, y))
+
+        assert sorted(case["piece_moves"]) == sorted(board_piece_moves)
+
+
+def test_get_player_pieces():
+    """Test the a boards `get_player_pieces` function.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    board = Board()
+
+    # Test the function with the initial board for `white`. And no `board` parameter.
+    player_pieces = white_pawns() + white_pieces()
+    board_player_pieces = board.get_player_pieces("white")
+
+    assert set(player_pieces) == set(board_player_pieces)
+
+    # Test the function with the initial board for `black`. And no `board` parameter.
+    player_pieces = black_pawns() + black_pieces()
+    board_player_pieces = board.get_player_pieces("black")
+
+    assert set(player_pieces) == set(board_player_pieces)
+
+    # Test the function with the initial board for `black`. With `board` parameter.
+    board_player_pieces = board.get_player_pieces("black", board=board.board)
+
+    assert set(player_pieces) == set(board_player_pieces)
+
+
+def test_next_turn():
+    """Test the a boards `next_turn` function.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    board = Board()
+
+    assert_obj_attr(board, "player", "white")
+    assert_obj_func(board, "next_turn", None, None)
+
+    assert_obj_attr(board, "player", "black")
+    assert_obj_func(board, "next_turn", None, None)
+    
+    assert_obj_attr(board, "player", "white")
+
 
