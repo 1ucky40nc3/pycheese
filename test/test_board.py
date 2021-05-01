@@ -185,4 +185,3 @@ def test_next_turn():
     
     assert_obj_attr(board, "player", "white")
 
-

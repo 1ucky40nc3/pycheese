@@ -187,7 +187,7 @@ class Board:
         source_x, source_y = source_coord
         target_x, target_y = target_coord
 
-        boundary = Boundary(0, 7)
+        boundary = Boundary(0, 8)
 
         if not (boundary.accepts(source_x) and boundary.accepts(source_y)):
             raise ValueError(

@@ -11,12 +11,14 @@ class Boundary:
 
     Args:
         min (int): Minimal value inside boundary.
-        max (int): Maximal value inside boundary.
+        max (int): Exclusive max value inside boundary.
 
     Example:
         >>> boundary = Boundary(0, 4)
-        >>> assert boundary.accepts(1)
-        >>> assert boundary.accepts(5) == False
+        >>> boundary.accepts(0)
+        True
+        >>> boundary.accepts(4)
+        False
     """
     def __init__(self, min: int, max: int):
         self.__min = min
@@ -32,9 +34,11 @@ class Boundary:
             boolean: True if value is in boundary, False otherwise.
         
         Example:
-            >>> boundary = Boundary(0, 4)
-            >>> assert boundary.accepts(1)
-            >>> assert boundary.accepts(5) == False
+        >>> boundary = Boundary(0, 4)
+        >>> boundary.accepts(0)
+        True
+        >>> boundary.accepts(4)
+        False
         """
         return value >= self.__min and value < self.__max
 
