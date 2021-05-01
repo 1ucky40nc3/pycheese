@@ -187,7 +187,7 @@ class Pawn(Piece):
 
     def can_special(self) -> bool:
         """Get a boolean that states if a pawn moves 2 squares down the board."""
-        return self.__start_coord == self.__coord
+        return self.__start_coord == self.get_coord()
 
     def get_special_move(self) -> Tuple[Tuple[int, int]]:
         """Get a pawns special move."""

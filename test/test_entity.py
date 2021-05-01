@@ -111,9 +111,34 @@ def test_piece():
         assert_obj_func(obj, "set_attacker", [piece], None)
         assert_obj_func(obj, "get_attacker", None, piece)
 
+        # Test object has functions. Note: Theese funcs are hard to test at large scale.
+        # Therefore theese functions will be tested selectively in the following code.
+        assert "to_json" in dir(obj)
         assert "__hash__" in dir(obj)
 
+    # Test `to_json` function of a `Pawn`.
     pawn_json = {'type': 'Pawn', 'player': 'white', 'coord': {'x': 1, 'y': 1}, 'pinned': True, 'attacker': (1, 1)}
     assert pawn_json == pawn.to_json()
+
+    # Test a `Pawn`'s special functionality.
+    # Test with existing instance.
+    assert_obj_attr(pawn, "_Pawn__start_coord", coord)
+    assert_obj_func(pawn, "can_special", None, False)
+
+    # Test with new instance.
+    pawn = Pawn(coord, player)
+    assert_obj_func(pawn, "can_special", None, True)
+    
+    # Test a `Rook`'s and a `King`'s special functionality.
+    assert_obj_attr(rook, "_Rook__moved", False)
+    assert_obj_attr(king, "_King__moved", False)
+
+    assert_obj_func(rook, "did_move", None, None)
+    assert_obj_func(king, "did_move", None, None)
+
+    assert_obj_func(rook, "get_moved", None, True)
+    assert_obj_func(king, "get_moved", None, True)
+
+
 
     
