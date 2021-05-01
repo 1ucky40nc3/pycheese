@@ -96,23 +96,15 @@ class Board:
         
         return board
 
-    def __call__(self, source_coord: Union[str, Tuple[int, int]], 
-                 target_coord: Union[str, Tuple[int, int], None] = None, 
-                 promotion_target: Union[str, None] = None):
-        """Chessboard interface.
+    def move(self, source_coord: Union[str, Tuple[int, int]], 
+             target_coord: Union[str, Tuple[int, int]],
+             promotion_target: Union[str, None] = None) -> dict:
+        """Move the a current player's piece.
 
-        This function servers as an interface to the chessboard.
-        To do so different behaviors are invoked with different inputs.
+        Move the a current player's piece that is specified via a coordinate on
+        the board (`source_coord`) to a target coordinate (`target_coord`).
 
-        The minimal input is the `source_coord`, a coordinate on the board wich
-        shall be focused to check for legal moves of the current player. 
-
-        The `target_coord` parameter must be specified additionally
-        to move a piece to a desired coordinate - the target coordinate.
-        The code checks if `target_coord` is in the legal moves the player
-        can make with the piece identified via `source_coord`. If this holds
-        true the move will be executed and the next players turn will be
-        initiated.
+        If the move from source to target is legal, it will be executed.
 
         If a pawn shall be promoted the `promotion_target` parameter must be specified.
         This parameter identifies the type of piece that shall be spawned at the
@@ -121,49 +113,80 @@ class Board:
 
         Args:
             source_coord (str or :obj:`tuple` of :obj:`int`): Initial coordinate of entity on board.
-            target_coord (str or :obj:`tuple` of :obj:`int`, optional): Target coordinate of entity on board.
+            target_coord (str or :obj:`tuple` of :obj:`int`): Target coordinate of entity on board.
             promotion_target (str, optional): String that identifies piece to promote pawn into.
 
         Returns:
             dict: The boards state.
+                  The output is shaped like:
+                    {
+                        "state": state,                  # The boards state.
+                        "source_coord": source_coord,    # The source coordinate.
+                        "target_coord": target_coord,    # The target coordinate.
+                        "event": {                       # Object with details about an event.
+                            "type": message,             # Type of an event.
+                            "extra": extra               # Extra data about the event.
+                        }  
+                    }
+        
+        Raises:
+            ValueError: If the source and target coordinate are equal or out of bounds.
+            NotInPlayersPossesionException: The source coordinate isn't under the current players posession.
+            MoveNotLegalException: The move from source to target is not legal.
 
         Example:
             >>> board = Board()
-            >>> board("e2")
-            >>> board("e2", "e4")
+            >>> board((0, 6), (0, 5))
+            {
+                "state": "ongoing",
+                "source_coord": (0, 6),
+                "target_coord": (0, 5),
+                "event": {
+                    "type": None,
+                    "extra": None 
+                }  
+            }
+
         
         Todo:
             # TODO: Implement draw by default.
-            # TODO: Add correct output in docstring.
-
+            # TODO: Test behavior.
         """
-        status = {"message": None, "extra": None}
+        event = {"type": None, "extra": None}
 
-        if type(source_coord) is str:
-            source_coord = self.translate_coord(source_coord)
-
-        if target_coord is None:
-            target_coord = source_coord
-
-        if type(target_coord) is str:
-            target_coord = self.translate_coord(target_coord)
-
+        if target_coord == source_coord:
+            raise ValueError(
+                "The target coordinate can't be equal to the source coordinate!")
+        
         source_x, source_y = source_coord
         target_x, target_y = target_coord
+
+        boundary = Boundary(0, 7)
+
+        if not (boundary.accepts(source_x) and boundary.accepts(source_y)):
+            raise ValueError(
+                "The source coordinate is out of bounds: %".format(source_coord))
+        
+        if not (boundary.accepts(target_x) and boundary.accepts(target_y)):
+            raise ValueError(
+                "The target coordinate is out of bounds: %".format(target_coord)) 
         
         source_entity = self.board[source_y][source_x]
         target_entity = self.board[target_y][target_x]
 
         if isinstance(source_entity, Piece):
-
             if source_entity.get_player() != self.player:
                 raise NotInPlayersPossesionException(
-                    "The specified piece is not in the current player's possesion!")
+                    "The piece at source coordinate is not in the current player's possesion!")
     
             source_moves, others = self.get_piece_moves(
                 source_entity, source_coord)
 
-            if target_coord in source_moves:
+            if target_coord not in source_moves:
+                raise MoveNotLegalException(
+                    "The move from the source coordinate to the target coordinate is not legal!")
+
+            else:
                 player_moves = self.get_player_moves()
                 if self.state == "check":
                     if player_moves:
@@ -174,7 +197,7 @@ class Board:
                             "state": self.state, 
                             "source_coord": source_coord, 
                             "target_coord": target_coord,
-                            "status": status
+                            "event": event
                         }
             
                 else:
@@ -184,7 +207,7 @@ class Board:
                             "state": self.state, 
                             "source_coord": source_coord, 
                             "target_coord": target_coord,
-                            "status": status
+                            "event": event
                         }
             
                 if others:
@@ -207,30 +230,30 @@ class Board:
                             self.board[source_y][source_x] = Empty((source_x, source_y))
 
                             side = "queenside" if target_x < 4 else "kingside" 
-                            status = {"message": "castle", "extra": side}
+                            event = {"type": "castle", "extra": side}
                             break
                 else:
                     if (isinstance(source_entity, Pawn) and
                         (target_y == 0 or target_y == 7)):
                         # Request promotion target if is None.
                         if promotion_target is None:
-                            status = "missing_promotion_target"
+                            event = "missing_promotion_target"
                             return {
                                 "state": self.state, 
                                 "source_coord": source_coord, 
                                 "target_coord": target_coord,
-                                "status": status  
+                                "event": event  
                             }
 
                         self.board[target_y][target_x] = self.get_promotion_target(
                             promotion_target, target_coord)
 
                         # TODO: Check castle behavoir rook gets chosen. (Note: New rook hasn't moved.)
-                        status = {"message": "promotion", "extra": promotion_target}
+                        event = {"type": "promotion", "extra": promotion_target}
 
                     else:
                         if isinstance(self.board[target_y][target_x], Piece):
-                            status = {"message": "captures", "extra": None}
+                            event = {"type": "captures", "extra": None}
                             
                         source_entity.set_coord(target_coord)
                         self.board[target_y][target_x] = source_entity
@@ -244,24 +267,12 @@ class Board:
                 # Set up for next turn.
                 self.next_turn()
                 self.update_attacked_squares()
-
-            if target_entity == source_entity:
-                print("Source:", str(source_entity))
-                print("Source moves:", source_moves)
-            else:
-                print("Source:", str(source_entity), "  Target:", str(target_entity))
-                print("Source moves:", source_moves, "\nCompanion moves:", others, "\n")
-
-            if target_coord == source_coord:
-                self.print(squares=source_moves)
-            else:
-                self.print()
         
         return {
             "state": self.state, 
             "source_coord": source_coord, 
             "target_coord": target_coord,
-            "status": status
+            "event": event
         }
 
     def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int],
@@ -719,53 +730,37 @@ class Board:
     def next_turn(self) -> None:
         """Change the player the indicate the next turn."""
         self.player = "white" if self.player == "black" else "black"
-    
-    def translate_coord(self, coord: str) -> Tuple[int]:
-        """Translate a coordinate in chess notation into the internal representation.
+
+    def show(self, squares: list = []) -> str:
+        """Show the current board.
+
+        Args:
+            squares (:obj:`list` of :obj:`tuple` of int): List of squares on the chess board that shall be marked.
         
-        Examples: 'a1' --> (0, 7); 'h8' --> (7, 0)
-
-        Args:
-            coord -- coordinate in chess notation (lowercase letter [a-h] followed by integer [1-8])
-
         Returns:
-            tuple -- translated (x, y) coordinate
+            str: A string representation of the chess board.
+        
+        Example:
+            >>> board = Board()
+            >>> print(b.show())
+            ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
+            ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+            ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
         """
-        x = coord[0]
-        y = coord[1]
-
-        x = ord(x) - ord("a")
-        y = abs(int(y) - 8)
-
-        return x, y
-
-    def print(self, squares=None, show_attacked=False) -> None:
-        """Print the current board.
-
-        Args:
-            squares -- list of squares on the chess board that shall be marked with this character '⛝' (to indicate that they are attacked)
-            show_attacked -- boolean that states if all attacked squares shall be marked
-        """
-
-        if squares is None:
-            squares = []
-
-        attacked = []
-        if show_attacked:
-            for y, row in enumerate(self.board):
-                for x, square in enumerate(row):
-                    if square.is_attacked():
-                        attacked.append((x, y))
+        board = ""
 
         for y, row in enumerate(self.board):
-            line = []
+            line = ""
             for x, square in enumerate(row):
                 if (x, y) in squares:
-                    line.append("⛝")
-                elif (x, y) in attacked:
-                    line.append("%")
+                    line += "⛝ "
                 else:
-                    line.append(str(square))
-            print(line)
-        print()
+                    line += str(square) + " "
+            board += line + "\n"
 
+        return board
