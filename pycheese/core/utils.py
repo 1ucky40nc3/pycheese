@@ -49,7 +49,7 @@ class Boundary:
         return value >= self.__min and value < self.__max
 
 
-def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]]
+def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
                   output_list: bool = False):
     """Convert a coordinate into a JSON representation."""
     coord = list(coord)
