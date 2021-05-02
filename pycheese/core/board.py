@@ -160,14 +160,21 @@ class Board:
             ValueError: If the source and target coordinate are equal or out of bounds.
             NotInPlayersPossesionException: The source coordinate isn't under the current players posession.
             MoveNotLegalException: The move from source to target is not legal.
+            NoPieceAtSpecifiedCoordinateException: There is no piece at the coordinate.
 
         Example:
             >>> board = Board()
             >>> board.move((0, 6), (0, 5))
             {
                 "state": "ongoing",
-                "source_coord": (0, 6),
-                "target_coord": (0, 5),
+                "source_coord": {
+                    "x": 0, 
+                    "y": 6,
+                }
+                "target_coord": {
+                    "x": 0, 
+                    "y": 5,
+                }
                 "event": {
                     "type": None,
                     "extra": None 
@@ -310,9 +317,49 @@ class Board:
     def inspect(self, coord: Tuple[int, int]) -> dict:
         """Inspect a piece's moves.
 
+        Get the moves of a current player's piece
+        that is identified via it's coordinate on the board.
+
+        Args:
+            coord (:obj:`tuple` of int): Coordinate on the chess board.
+
+        Returns:
+            dict: Dictionary that represents data about a pieces moves.
+
         Raises:
             ValueError: If the source and target coordinate are equal or out of bounds.
             NotInPlayersPossesionException: The source coordinate isn't under the current players posession.
+            NoPieceAtSpecifiedCoordinateException: There is no piece at the coordinate.
+
+        Example:
+            >>> board = Board()
+            >>> board.inspect((0, 6))
+            {
+                "coord": {
+                    "x": 0,
+                    "y": 6
+                },
+                "piece": {
+                    "type": "Pawn", 
+                    "player": "white", 
+                    "coord": {
+                        "x": 0, 
+                        "y": 6
+                    }, 
+                    "pinned": False, 
+                    "attacker": None
+                },
+                "moves": [
+                    {
+                        "x": 0, 
+                        "y": 5
+                    },
+                    {
+                        "x": 0, 
+                        "y": 4
+                    },
+                ]
+            }
         """
         x, y = coord
 
@@ -335,7 +382,7 @@ class Board:
             return {
                 "coord": coord_to_json(coord),
                 "piece": entity.to_json(entity),
-                "moves": coord_to_json(piece_moves)
+                "moves": coord_to_json(piece_moves, output_list=True)
             }
         
         raise NoPieceAtSpecifiedCoordinateException(
@@ -784,8 +831,14 @@ class Board:
             >>> board.move((0, 6), (0, 5))
             {
                 'state': 'ongoing', 
-                'source_coord': (0, 6), 
-                'target_coord': (0, 5), 
+                'source_coord': {
+                    'x': 0, 
+                    'y': 6,
+                }
+                'target_coord': {
+                    'x': 0,
+                    'y': 5,
+                }
                 'event': {
                     'type': None, 
                     'extra': None
