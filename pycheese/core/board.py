@@ -15,15 +15,48 @@ Example:
     ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
     ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
     ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+    >>> board.inspect((0, 6))
+    {
+        "coord": {
+            "x": 0,
+            "y": 6
+        },
+        "piece": {
+            "type": "Pawn", 
+            "player": "white", 
+            "coord": {
+                "x": 0, 
+                "y": 6
+            }, 
+            "pinned": False, 
+            "attacker": None
+        },
+        "moves": [
+            {
+                "x": 0, 
+                "y": 5
+            },
+            {
+                "x": 0, 
+                "y": 4
+            },
+        ]
+    }
     >>> board.move((0, 6), (0, 5))
     {
-        'state': 'ongoing', 
-        'source_coord': (0, 6), 
-        'target_coord': (0, 5), 
-        'event': {
-            'type': None, 
-            'extra': None
+        "state": "ongoing",
+        "source_coord": {
+            "x": 0, 
+            "y": 6,
         }
+        "target_coord": {
+            "x": 0, 
+            "y": 5,
+        }
+        "event": {
+            "type": None,
+            "extra": None 
+        }  
     }
     >>> print(board.show())
     ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 
