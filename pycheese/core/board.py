@@ -178,8 +178,6 @@ class Board:
             # TODO: Implement draw by default.
             # TODO: Test behavior.
         """
-        event = {"type": None, "extra": None}
-
         if target_coord == source_coord:
             raise ValueError(
                 "The target coordinate can't be equal to the source coordinate!")
@@ -195,7 +193,13 @@ class Board:
         
         if not (boundary.accepts(target_x) and boundary.accepts(target_y)):
             raise ValueError(
-                "The target coordinate is out of bounds: %".format(target_coord)) 
+                "The target coordinate is out of bounds: %".format(target_coord))
+
+        # Construct JSON for the function output.
+        event = {"type": None, "extra": None}
+
+        source_coord_json = {"x": source_x, "y": source_y}
+        target_coord_json = {"x": target_x, "y": target_y}
         
         source_entity = self.board[source_y][source_x]
         target_entity = self.board[target_y][target_x]
@@ -222,8 +226,8 @@ class Board:
                         self.state = "checkmate"
                         return {
                             "state": self.state, 
-                            "source_coord": source_coord, 
-                            "target_coord": target_coord,
+                            "source_coord": source_coord_json, 
+                            "target_coord": target_coord_json,
                             "event": event
                         }
             
@@ -232,8 +236,8 @@ class Board:
                         self.state = "stalemate"
                         return {
                             "state": self.state, 
-                            "source_coord": source_coord, 
-                            "target_coord": target_coord,
+                            "source_coord": source_coord_json, 
+                            "target_coord": target_coord_json,
                             "event": event
                         }
             
@@ -264,11 +268,11 @@ class Board:
                         (target_y == 0 or target_y == 7)):
                         # Request promotion target if is None.
                         if promotion_target is None:
-                            event = "missing_promotion_target"
+                            event = {"type": "missing_promotion_target", "extra": None}
                             return {
                                 "state": self.state, 
-                                "source_coord": source_coord, 
-                                "target_coord": target_coord,
+                                "source_coord": source_coord_json, 
+                                "target_coord": target_coord_json,
                                 "event": event  
                             }
 
@@ -297,8 +301,8 @@ class Board:
         
         return {
             "state": self.state, 
-            "source_coord": source_coord, 
-            "target_coord": target_coord,
+            "source_coord": source_coord_json,
+            "target_coord": target_coord_json,
             "event": event
         }
 
