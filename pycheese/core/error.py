@@ -7,6 +7,10 @@ errors and exceptios by the package in the sustainable way.
 
 class PyCheeseException(Exception):
     pass
+
+class NoPieceAtSpecifiedCoordinateException(PyCheeseException):
+    pass
+
 class NotInPlayersPossesionException(PyCheeseException):
     pass
 class MoveNotLegalException(PyCheeseException):

@@ -55,6 +55,7 @@ from pycheese.core.entity import Queen
 from pycheese.core.entity import King
 
 from pycheese.core.utils import Boundary
+from pycheese.core.utils import coord_to_json
 
 from pycheese.core.error import NotInPlayersPossesionException
 
@@ -189,22 +190,22 @@ class Board:
 
         if not (boundary.accepts(source_x) and boundary.accepts(source_y)):
             raise ValueError(
-                "The source coordinate is out of bounds: %".format(source_coord))
+                "The source coordinate is out of bounds: {}".format(source_coord))
         
         if not (boundary.accepts(target_x) and boundary.accepts(target_y)):
             raise ValueError(
-                "The target coordinate is out of bounds: %".format(target_coord))
+                "The target coordinate is out of bounds: {}".format(target_coord))
 
         # Construct JSON for the function output.
         event = {"type": None, "extra": None}
-
-        source_coord_json = {"x": source_x, "y": source_y}
-        target_coord_json = {"x": target_x, "y": target_y}
         
         source_entity = self.board[source_y][source_x]
         target_entity = self.board[target_y][target_x]
 
-        if isinstance(source_entity, Piece):
+        if not isinstance(source_entity, Piece):
+            raise NoPieceAtSpecifiedCoordinateException(
+                "There is no piece at the specified coordinate. {}".format(source_coord))
+        else:
             if source_entity.get_player() != self.player:
                 raise NotInPlayersPossesionException(
                     "The piece at source coordinate is not in the current player's possesion!")
@@ -226,8 +227,8 @@ class Board:
                         self.state = "checkmate"
                         return {
                             "state": self.state, 
-                            "source_coord": source_coord_json, 
-                            "target_coord": target_coord_json,
+                            "source_coord": coord_to_json(source_coord), 
+                            "target_coord": coord_to_json(target_coord),
                             "event": event
                         }
             
@@ -236,8 +237,8 @@ class Board:
                         self.state = "stalemate"
                         return {
                             "state": self.state, 
-                            "source_coord": source_coord_json, 
-                            "target_coord": target_coord_json,
+                            "source_coord": coord_to_json(source_coord), 
+                            "target_coord": coord_to_json(target_coord),
                             "event": event
                         }
             
@@ -271,8 +272,8 @@ class Board:
                             event = {"type": "missing_promotion_target", "extra": None}
                             return {
                                 "state": self.state, 
-                                "source_coord": source_coord_json, 
-                                "target_coord": target_coord_json,
+                                "source_coord": coord_to_json(source_coord), 
+                                "target_coord": coord_to_json(target_coord),
                                 "event": event  
                             }
 
@@ -301,18 +302,53 @@ class Board:
         
         return {
             "state": self.state, 
-            "source_coord": source_coord_json,
-            "target_coord": target_coord_json,
+            "source_coord": coord_to_json(source_coord), 
+            "target_coord": coord_to_json(target_coord),
             "event": event
         }
 
-    def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int],
+    def inspect(self, coord: Tuple[int, int]) -> dict:
+        """Inspect a piece's moves.
+
+        Raises:
+            ValueError: If the source and target coordinate are equal or out of bounds.
+            NotInPlayersPossesionException: The source coordinate isn't under the current players posession.
+        """
+        x, y = coord
+
+        # Check if the coordinate is on the chess board.
+        boundary = Boundary(0, 8)
+        if not (boundary.accepts(x) and boundary.accepts(y)):
+            raise ValueError(
+                "The piece coordinate is out of bounds: {}".format(coord))
+
+        entity = self.board[source_y][source_x]
+
+        if isinstance(entity, Piece):
+            if entity.get_player() != self.player:
+                raise NotInPlayersPossesionException(
+                    "The piece at source coordinate is not in the current player's possesion!")
+    
+            piece_moves, _ = self.get_piece_moves(
+                entity, coord, find_others=False)
+
+            return {
+                "coord": coord_to_json(coord),
+                "piece": entity.to_json(entity),
+                "moves": coord_to_json(piece_moves)
+            }
+        
+        raise NoPieceAtSpecifiedCoordinateException(
+                "There is no piece at the specified coordinate. {}".format(coord))
+
+    def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int], find_others: bool = True,
                         attacking: bool = False, board: List[List[Type[Entity]]] = None) -> List[Tupe[int, int]]:
         """Find a pieces legal moves.
 
         Args:
             piece (:obj:`Piece`): A piece of the current player.
             piece_coord (:obj:`tuple` of :obj:`int`): Coordinate of the piece on the chessboard.
+            find_other (bool, optional): States if information about companion moves shall be returned.
             attacking (bool, optional): States if only moves that attack enemy pieces shall be returned.
             board (:obj:`list` of :obj:`list` of :obj:`Entity`, optional): List representing a board.
 
@@ -455,7 +491,8 @@ class Board:
                             if square.get_player() != piece.get_player():
                                 attacking_moves.append((x, y))
                         else:
-                            attacking_moves.append((x, y))                        
+                            attacking_moves.append((x, y))    
+
             # If only attacking moves shall be recoorded,
             # `piece_moves` equal `attacking_moves`.
             if attacking:
@@ -583,7 +620,8 @@ class Board:
         # who is identified by the side the `target_coord` leads to.
         # Afterwards check if the enemy is attacking squares that
         # are needed for castling or if theese squares are .
-        if (self.state != "check"
+        if (find_others
+            and self.state != "check"
             and not attacking
             and isinstance(piece, King)):
             # Check if king has already moved.

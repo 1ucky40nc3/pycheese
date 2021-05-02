@@ -6,6 +6,12 @@ of the package in the sustainable way.
 """
 
 
+from typing import Type
+from typing import List
+from typing import Tuple
+from typing import Union
+
+
 class Boundary:
     """Class that is used to check if a value is in a boundary.
 
@@ -24,7 +30,7 @@ class Boundary:
         self.__min = min
         self.__max = max
     
-    def accepts(self, value: int):
+    def accepts(self, value: int) -> bool:
         """Check if the value is inside the boundary.
 
         Args:
@@ -42,4 +48,17 @@ class Boundary:
         """
         return value >= self.__min and value < self.__max
 
+
+def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]]):
+    """Convert a coordinate into a JSON representation."""
+    coord = list(coord)
+
+    json = []
+    for x, y in coord:
+        json.append({"x": x, "y": y})
+
+    if len(json) == 1:
+        return json[0]
+
+    return json
 
