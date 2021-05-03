@@ -267,7 +267,7 @@ def test_inspect():
             "target_coord": (5, 1),
             "promotion_target": None,
             "output": {
-                'state': 'check', 
+                'state': 'checkmate', 
                 'source_coord': {'x': 5, 'y': 5}, 
                 'target_coord': {'x': 5, 'y': 1}, 
                 'event': {'type': 'captures', 'extra': None}
@@ -279,7 +279,7 @@ def test_inspect():
         source_coord = test["source_coord"]
         target_coord = test["target_coord"]
         promotion_target = test["promotion_target"]
-
+        
         output = board.move(source_coord, target_coord, promotion_target)
 
         assert output == test["output"]

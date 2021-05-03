@@ -259,30 +259,6 @@ class Board:
                     "The move from the source coordinate to the target coordinate is not legal!")
 
             else:
-                player_moves = self.get_player_moves(self.player)
-
-                if self.state == "check":
-                    if player_moves:
-                        self.state = "ongoing"
-                    else:
-                        self.state = "checkmate"
-                        return {
-                            "state": self.state, 
-                            "source_coord": coord_to_json(source_coord), 
-                            "target_coord": coord_to_json(target_coord),
-                            "event": event
-                        }
-            
-                else:
-                    if not player_moves:
-                        self.state = "stalemate"
-                        return {
-                            "state": self.state, 
-                            "source_coord": coord_to_json(source_coord), 
-                            "target_coord": coord_to_json(target_coord),
-                            "event": event
-                        }
-            
                 if others:
                     for element in others:
                         companion = element["companion"]
@@ -311,12 +287,6 @@ class Board:
                         # Request promotion target if is None.
                         if promotion_target is None:
                             event = {"type": "missing_promotion_target", "extra": None}
-                            return {
-                                "state": self.state, 
-                                "source_coord": coord_to_json(source_coord), 
-                                "target_coord": coord_to_json(target_coord),
-                                "event": event  
-                            }
 
                         self.board[target_y][target_x] = self.get_promotion_target(
                             promotion_target, target_coord)
@@ -339,7 +309,20 @@ class Board:
 
                 # Set up for next turn.
                 self.next_turn()
-                self.update_attacked_squares()
+
+                # Update game state for new player.
+                player_moves = self.get_player_moves(
+                    self.player)
+
+                if self.state == "check":
+                    if player_moves:
+                        self.state = "ongoing"
+                    else:
+                        self.state = "checkmate"
+            
+                else:
+                    if not player_moves:
+                        self.state = "stalemate"
         
         return {
             "state": self.state, 
@@ -678,7 +661,7 @@ class Board:
                 # To block check the `piece` has to step into
                 # squares on the board that are being attacked by the enemy.
                 # Compute theese and check if the king is hidden from check.
-                attacked_squares = self.get_attacked_squares(with_attackers=True)
+                attacked_squares = self.get_attacked_squares(with_pieces=True)
 
                 for move in piece_moves:
                     if move in attacked_squares:
@@ -807,10 +790,10 @@ class Board:
         pieces = self.get_player_pieces(player, board=board)
         
         for piece in pieces:
-            piece_moves = self.get_piece_moves(
+            piece_moves, _ = self.get_piece_moves(
                 piece, piece.get_coord(), board=board, attacking=attacking)
 
-            for move in piece_moves[0]:
+            for move in piece_moves:
                 moves.append(move)
         
             if with_pieces:
@@ -924,6 +907,7 @@ class Board:
     def next_turn(self) -> None:
         """Change the player the indicate the next turn."""
         self.player = "white" if self.player == "black" else "black"
+        self.update_attacked_squares()
 
     def show(self, squares: List[Tuple[int]] = []) -> str:
         """Show the current board.
