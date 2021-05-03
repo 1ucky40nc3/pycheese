@@ -138,7 +138,7 @@ def test_get_piece_moves():
         piece = board.board[y][x]
         board_piece_moves = board.get_piece_moves(piece, (x, y))
 
-        assert sorted(case["piece_moves"]) == sorted(board_piece_moves)
+        assert sorted(board_piece_moves) == sorted(case["piece_moves"])
 
 
 def test_get_player_pieces():
@@ -185,3 +185,101 @@ def test_next_turn():
     
     assert_obj_attr(board, "player", "white")
 
+
+def test_inspect():
+    """Test the boards `move` funtion.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    board = Board()
+
+    test_cases = [
+        {
+            "source_coord": (4, 6),
+            "target_coord": (4, 4),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 6}, 
+                'target_coord': {'x': 4, 'y': 4}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (4, 1),
+            "target_coord": (4, 3),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 1}, 
+                'target_coord': {'x': 4, 'y': 3}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (3, 7),
+            "target_coord": (5, 5),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 3, 'y': 7}, 
+                'target_coord': {'x': 5, 'y': 5}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (1, 0),
+            "target_coord": (2, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 1, 'y': 0}, 
+                'target_coord': {'x': 2, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (5, 7),
+            "target_coord": (2, 4),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 5, 'y': 7}, 
+                'target_coord': {'x': 2, 'y': 4}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (3, 1),
+            "target_coord": (3, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 3, 'y': 1}, 
+                'target_coord': {'x': 3, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (5, 5),
+            "target_coord": (5, 1),
+            "promotion_target": None,
+            "output": {
+                'state': 'check', 
+                'source_coord': {'x': 5, 'y': 5}, 
+                'target_coord': {'x': 5, 'y': 1}, 
+                'event': {'type': 'captures', 'extra': None}
+            }
+        },
+    ]
+
+    for test in test_cases:
+        source_coord = test["source_coord"]
+        target_coord = test["target_coord"]
+        promotion_target = test["promotion_target"]
+
+        output = board.move(source_coord, target_coord, promotion_target)
+
+        assert output == test["output"]

@@ -91,6 +91,7 @@ from pycheese.core.utils import Boundary
 from pycheese.core.utils import coord_to_json
 
 from pycheese.core.error import NotInPlayersPossesionException
+from pycheese.core.error import NoPieceAtSpecifiedCoordinateException
 
 import copy
 
@@ -402,7 +403,7 @@ class Board:
             raise ValueError(
                 "The piece coordinate is out of bounds: {}".format(coord))
 
-        entity = self.board[source_y][source_x]
+        entity = self.board[y][x]
 
         if isinstance(entity, Piece):
             if entity.get_player() != self.player:
@@ -924,7 +925,7 @@ class Board:
         """Change the player the indicate the next turn."""
         self.player = "white" if self.player == "black" else "black"
 
-    def show(self, squares: list = []) -> str:
+    def show(self, squares: List[Tuple[int]] = []) -> str:
         """Show the current board.
 
         Args:
