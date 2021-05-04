@@ -879,7 +879,7 @@ class Board:
                     square.set_pinned(False)
                     square.set_attacker(None)
 
-        attacked_squares = self.get_attacked_squares()
+        attacked_squares = self.get_attacked_squares(with_pieces=True)
         for square in attacked_squares:
             x, y = square
             self.board[y][x].set_attacked(True)
