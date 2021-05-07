@@ -311,8 +311,7 @@ class Board:
                 self.next_turn()
 
                 # Update game state for new player.
-                player_moves = self.get_player_moves(
-                    self.player)
+                player_moves = self.get_player_moves(self.player)
 
                 if self.state == "check":
                     if player_moves:
@@ -472,29 +471,28 @@ class Board:
                 square = board[y][x]
                 if isinstance(square, Piece):
                     # If the `piece` is owned by the current `player` break.
-                    if (isinstance(piece, Pawn) or
-                        square.get_player() == piece.get_player()):
-                        break
+                    same_player_possesion = square.get_player() == piece.get_player()
 
-                    # If the `piece` is owned by the enemy `player`
-                    # add the coordinate to the list of legal moves.
-                    if square.get_player() != piece.get_player():
-                        loop = False
+                    if attacking:
+                        if same_player_possesion:
+                            loop = False
+                    else:
+                        if same_player_possesion:
+                            break
+                        else:
+                            loop = False
 
                     # The `piece` could take the king. The king is in `check`
                     # and no more moves of the `piece` have to be checked.
                     check = False
-                    if isinstance(square, King):
+                    if isinstance(square, King) and not attacking:
                         self.state = "check"
                         check = True
                         loop = False
     
                     # Check if the `piece` could check the enemy king
                     # if a enemy `piece` would move. Set this `piece` to `pinned`.
-                    if (not check and
-                        (isinstance(piece, Bishop) or
-                         isinstance(piece, Rook) or
-                         isinstance(piece, Queen))): 
+                    if not check and isinstance(piece, (Bishop, Rook, Queen)): 
                         tmp_x = x
                         tmp_y = y
                         while boundary.accepts(tmp_x + dx) and boundary.accepts(tmp_y + dy):
@@ -507,7 +505,8 @@ class Board:
                                     break
                                 else:    
                                     if isinstance(tmp_square, King):
-                                        square.set_pinned(True, attacker=piece)
+                                        square.set_pinned(True)
+                                        square.set_attacker(attacker=piece)
                                     else:
                                         break 
 
@@ -515,9 +514,7 @@ class Board:
                 
                 # End the loop for `pieces` of type ``Pawn``, ``Knight`` or ``King``,
                 # because they can only move one square (except ``Pawns``).
-                if (isinstance(piece, Pawn) or
-                    isinstance(piece, Knight) or
-                    isinstance(piece, King)):
+                if isinstance(piece, (Pawn, Knight, King)):
                     break
 
         # Check if the `piece` is of type ``Pawn``
@@ -561,6 +558,7 @@ class Board:
             # `piece_moves` equal `attacking_moves`.
             if attacking:
                 piece_moves = attacking_moves
+
             # Else append the `attacking_moves` to `piece_moves`
             # and check if the ``Pawn`` can execute it's special move.
             else:
@@ -572,7 +570,10 @@ class Board:
                     if piece.get_player() == "white":
                         dy = - dy
 
-                    piece_moves.append((piece_x + dx, piece_y + dy))
+                    x, y = piece_x + dx, piece_y + dy
+                    
+                    if isinstance(board[y][x], Empty):
+                        piece_moves.append((x, y))
         
         # Check if `piece` is `pinned`. If the `piece` is `pinned`
         # it can only move in the `attackers` direction.
@@ -607,8 +608,7 @@ class Board:
             stop_y = max(attacker_y, piece_y)
             boundary_y = Boundary(start_y, stop_y)
 
-            x = piece_x
-            y = piece_y
+            x, y = piece_x, piece_y
             while boundary_x.accepts(x + dx) and boundary_y.accepts(y + dy):
                 x += dx
                 y += dy
@@ -624,10 +624,8 @@ class Board:
 
         # If the `player` is in check: Find all moves that resolve the check.
         # Therefore check if the piece is in the checked players possesion.
-        if (self.state == "check"
-            and piece.get_player() == self.player
-            and isinstance(piece, Piece)):
-
+        if self.state == "check" and piece.get_player() == self.player:
+            print("DEBUG: trying to solve check")
             # If the `piece` is of type ``King`` then only moves
             # that lead to non attacked coordinates are valid.
             if isinstance(piece, King):
@@ -683,34 +681,32 @@ class Board:
         # To so first check if the king has already moved or a given rook
         # who is identified by the side the `target_coord` leads to.
         # Afterwards check if the enemy is attacking squares that
-        # are needed for castling or if theese squares are .
-        if (find_others
-            and self.state != "check"
-            and not attacking
-            and isinstance(piece, King)):
+        # are needed for castling or if theese squares are.
+        if self.can_player_castle(piece, find_others, attacking):
             # Check if king has already moved.
             if not piece.get_moved():
                 for step in range(-1, 2, 2):
                     companion_x = 0 if step == -1 else 7
-                    companion_y = piece_y
-                    companion = board[companion_y][companion_x]
+                    companion = board[piece_y][companion_x]
+
                     # Check if the `companion` of type `Rook` has already moved.
                     if (isinstance(companion, Rook)
                         and not companion.get_moved()):
 
                         # Check for obstructed or attacked squares. 
-                        empty = True
+                        path_not_obstructed = True
 
                         start = 5 if step == 1 else 1
                         stop = 7 if step == 1 else 4
 
                         for x in range(start, stop):
                             square = board[piece_y][x]
+
                             if isinstance(square, Piece) or square.is_attacked():
-                                empty = False
+                                path_not_obstructed = False
                                 break
 
-                        if empty:
+                        if path_not_obstructed:
                             piece_move = (piece_x + step * 2, piece_y)
                             piece_moves.append(piece_move)
                             
@@ -765,6 +761,14 @@ class Board:
         
         return player_pieces
 
+    def get_player_king(self) -> Type[King]:
+        """Get the current players king."""
+        player_pieces = self.get_player_pieces(self.player)
+
+        for piece in player_pieces:
+            if isinstance(piece, King):
+                return piece    
+
     def get_player_moves(self, player: str, board: List[List[Type[Entity]]] = None, 
                          attacking: bool = False, with_pieces: bool = False) -> List[Tuple[int]]:
         """Find all valid moves of a player's pieces.
@@ -791,7 +795,7 @@ class Board:
         
         for piece in pieces:
             piece_moves, _ = self.get_piece_moves(
-                piece, piece.get_coord(), board=board, attacking=attacking)
+                piece, piece.get_coord(), attacking=attacking, board=board)
 
             for move in piece_moves:
                 moves.append(move)
@@ -826,11 +830,7 @@ class Board:
         player = "white" if self.player == "black" else "black"
 
         attacked_squares = self.get_player_moves(
-            player,
-            board=board,
-            attacking=True, 
-            with_pieces=with_pieces,
-        )
+            player, board=board, attacking=True, with_pieces=with_pieces)
 
         return attacked_squares
     
@@ -842,6 +842,7 @@ class Board:
 
         Note:
             This function is called automatically in `self.move`.
+
 
         Example:
             >>> board = Board()
@@ -879,11 +880,19 @@ class Board:
                     square.set_pinned(False)
                     square.set_attacker(None)
 
-        attacked_squares = self.get_attacked_squares(with_pieces=True)
+        attacked_squares = self.get_attacked_squares()
         for square in attacked_squares:
             x, y = square
             self.board[y][x].set_attacked(True)
-    
+
+    def next_turn(self) -> None:
+        """Change the player the indicate the next turn."""
+        self.player = "white" if self.player == "black" else "black"
+        self.update_attacked_squares()
+
+        if self.get_player_king().is_attacked():
+            self.state = "check"
+
     def get_promotion_target(self, promotion_target: str, 
                              target_coord: Tuple[int]) -> Type[Piece]:
         """Get the piece that is requested when a pawn reaches the enemy's baseline.
@@ -903,11 +912,6 @@ class Board:
             return Bishop(target_coord, self.player)
         elif promotion_target == "knight":
             return Knight(target_coord, self.player)
-
-    def next_turn(self) -> None:
-        """Change the player the indicate the next turn."""
-        self.player = "white" if self.player == "black" else "black"
-        self.update_attacked_squares()
 
     def show(self, squares: List[Tuple[int]] = []) -> str:
         """Show the current board.
@@ -942,3 +946,22 @@ class Board:
             board += line + "\n"
 
         return board
+
+    def can_player_castle(self, piece: Type[Piece], 
+                            find_others: bool, attacking: bool) -> bool:
+        """Return if player can castle.
+
+        Args:
+            piece (:obj:`Piece`): Selected piece on the chess board.
+            find_others (bool): States if castling shall be considered.
+            attacking (bool): States if only attacking moves shall be added.
+
+        Returns:
+            bool: Can the player castle?
+        """
+        return (
+            self.state != "check"
+            and isinstance(piece, King) 
+            and find_others 
+            and not attacking
+        )

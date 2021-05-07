@@ -282,4 +282,12 @@ def test_inspect():
         
         output = board.move(source_coord, target_coord, promotion_target)
 
+        print(output)
+        print("board")
+        print(board.show())
+        print("attacked_squares")
+        print(board.show(board.get_attacked_squares()))
+        print("player_moves")
+        print(board.show(board.get_player_moves(board.player)))
+
         assert output == test["output"]
