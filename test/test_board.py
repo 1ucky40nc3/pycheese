@@ -371,6 +371,126 @@ def test_case_castle_kingside() -> dict:
     ]
 
 
+def test_case_castle_queenside() -> dict:
+    """Test case for the boards `move` funtion.
+    
+    To test the function the follow chess game will be played:
+    1. Nc3 Nc6 2. d3 d6 3. Be3 Be6 4. Qd2 Qd7 5. O-O-O O-O-O
+    """
+    return [
+        {
+            "source_coord": (1, 7),
+            "target_coord": (2, 5),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 1, 'y': 7}, 
+                'target_coord': {'x': 2, 'y': 5}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (1, 0),
+            "target_coord": (2, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 1, 'y': 0}, 
+                'target_coord': {'x': 2, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (3, 6),
+            "target_coord": (3, 5),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 3, 'y': 6}, 
+                'target_coord': {'x': 3, 'y': 5}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (3, 1),
+            "target_coord": (3, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 3, 'y': 1}, 
+                'target_coord': {'x': 3, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (2, 7),
+            "target_coord": (4, 5),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 2, 'y': 7}, 
+                'target_coord': {'x': 4, 'y': 5}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (2, 0),
+            "target_coord": (4, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 2, 'y': 0}, 
+                'target_coord': {'x': 4, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (3, 7),
+            "target_coord": (3, 6),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 3, 'y': 7}, 
+                'target_coord': {'x': 3, 'y': 6}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (3, 0),
+            "target_coord": (3, 1),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 3, 'y': 0}, 
+                'target_coord': {'x': 3, 'y': 1}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (4, 7),
+            "target_coord": (2, 7),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 7}, 
+                'target_coord': {'x': 2, 'y': 7}, 
+                'event': {'type': 'castle', 'extra': 'queenside'}
+            }
+        },
+        {
+            "source_coord": (4, 0),
+            "target_coord": (2, 0),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 0}, 
+                'target_coord': {'x': 2, 'y': 0}, 
+                'event': {'type': 'castle', 'extra': 'queenside'}
+            }
+        },
+    ]
+
+
 def test_move():
     """Test the boards `move` funtion.
 
@@ -381,6 +501,7 @@ def test_move():
     test_cases = [
         test_case_napolean_attack(),
         test_case_castle_kingside(),
+        test_case_castle_queenside(),
     ]
 
     for case in test_cases:
