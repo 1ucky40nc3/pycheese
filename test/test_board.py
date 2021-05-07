@@ -186,16 +186,13 @@ def test_next_turn():
     assert_obj_attr(board, "player", "white")
 
 
-def test_inspect():
-    """Test the boards `move` funtion.
-
-    Check if the functions's behavoir is correct.
-    To do so initialize an instance of the Board class
-    and assert the functions output with different setups.
+def test_case_napolean_attack():
+    """Test case for the boards `move` funtion.
+    
+    To test the function the follow chess game will be played:
+    1. e4 e5 2. Qf3 Nc6 3. Bc4 d6 4. Qxf7#
     """
-    board = Board()
-
-    test_cases = [
+    return [
         {
             "source_coord": (4, 6),
             "target_coord": (4, 4),
@@ -275,11 +272,28 @@ def test_inspect():
         },
     ]
 
-    for test in test_cases:
-        source_coord = test["source_coord"]
-        target_coord = test["target_coord"]
-        promotion_target = test["promotion_target"]
-        
-        output = board.move(source_coord, target_coord, promotion_target)
 
-        assert output == test["output"]
+def test_move():
+    """Test the boards `move` funtion.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    test_cases = [
+        test_case_napolean_attack(),
+    ]
+
+    for case in test_cases:
+        board = Board()
+
+        for move in case:
+            source_coord = move["source_coord"]
+            target_coord = move["target_coord"]
+            
+            promotion_target = move["promotion_target"]
+            
+            output = board.move(
+                source_coord, target_coord, promotion_target)
+
+            assert output == move["output"]
