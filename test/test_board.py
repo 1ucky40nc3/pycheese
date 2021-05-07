@@ -186,7 +186,7 @@ def test_next_turn():
     assert_obj_attr(board, "player", "white")
 
 
-def test_case_napolean_attack():
+def test_case_napolean_attack() -> dict:
     """Test case for the boards `move` funtion.
     
     To test the function the follow chess game will be played:
@@ -273,6 +273,104 @@ def test_case_napolean_attack():
     ]
 
 
+def test_case_castle_kingside() -> dict:
+    """Test case for the boards `move` funtion.
+    
+    To test the function the follow chess game will be played:
+    1. Nf3 Nf6 2. e3 e6 3. Be2 Be7 4. O-O O-O
+    """
+    return [
+        {
+            "source_coord": (6, 7),
+            "target_coord": (5, 5),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 6, 'y': 7}, 
+                'target_coord': {'x': 5, 'y': 5}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (6, 0),
+            "target_coord": (5, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 6, 'y': 0}, 
+                'target_coord': {'x': 5, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (4, 6),
+            "target_coord": (4, 5),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 6}, 
+                'target_coord': {'x': 4, 'y': 5}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (4, 1),
+            "target_coord": (4, 2),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 1}, 
+                'target_coord': {'x': 4, 'y': 2}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (5, 7),
+            "target_coord": (4, 6),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 5, 'y': 7}, 
+                'target_coord': {'x': 4, 'y': 6}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (5, 0),
+            "target_coord": (4, 1),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 5, 'y': 0}, 
+                'target_coord': {'x': 4, 'y': 1}, 
+                'event': {'type': None, 'extra': None}
+            }
+        },
+        {
+            "source_coord": (4, 7),
+            "target_coord": (6, 7),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 7}, 
+                'target_coord': {'x': 6, 'y': 7}, 
+                'event': {'type': 'castle', 'extra': 'kingside'}
+            }
+        },
+        {
+            "source_coord": (4, 0),
+            "target_coord": (6, 0),
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 4, 'y': 0}, 
+                'target_coord': {'x': 6, 'y': 0}, 
+                'event': {'type': 'castle', 'extra': 'kingside'}
+            }
+        },
+    ]
+
+
 def test_move():
     """Test the boards `move` funtion.
 
@@ -282,6 +380,7 @@ def test_move():
     """
     test_cases = [
         test_case_napolean_attack(),
+        test_case_castle_kingside(),
     ]
 
     for case in test_cases:
@@ -290,10 +389,12 @@ def test_move():
         for move in case:
             source_coord = move["source_coord"]
             target_coord = move["target_coord"]
-            
+
             promotion_target = move["promotion_target"]
             
             output = board.move(
                 source_coord, target_coord, promotion_target)
+
+            print(board.show())
 
             assert output == move["output"]

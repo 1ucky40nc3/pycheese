@@ -93,6 +93,7 @@ from pycheese.core.utils import normalize
 
 from pycheese.core.error import NotInPlayersPossesionException
 from pycheese.core.error import NoPieceAtSpecifiedCoordinateException
+from pycheese.core.error import MoveNotLegalException
 
 import copy
 
@@ -263,20 +264,23 @@ class Board:
                 if others:
                     for element in others:
                         companion = element["companion"]
-                        companion_move = element["companion_move"]
+                        x, y = element["companion_move"]
                         piece_move = element["piece_move"]
 
                         if target_coord == piece_move:
+                            # Place ``Empty`` at the companions former coordinate.
                             companion_x, companion_y = companion.get_coord()
-                            companion.set_coord((x, y))
-
-                            self.board[y][x] = companion
                             self.board[companion_y][companion_x] = Empty((companion_x, companion_y))
 
-                            x, y = (x - 1, y) if (x - 1, y) in source_moves else (x + 1, y)
-                            source_entity.set_coord((x, y))
+                            # Place the `companion` at the new coordinate.
+                            companion.set_coord((x, y))
+                            self.board[y][x] = companion
 
-                            self.board[y][x] = source_entity
+                            # Place the `source_entity` at the new coordinate.
+                            source_entity.set_coord((target_x, target_y))
+                            self.board[target_y][target_x] = source_entity
+
+                            # Place ``Empty`` at the king former coordinate. 
                             self.board[source_y][source_x] = Empty((source_x, source_y))
 
                             side = "queenside" if target_x < 4 else "kingside" 
@@ -304,8 +308,7 @@ class Board:
 
                     self.board[source_y][source_x] = Empty((source_x, source_y))
                 
-                if (isinstance(source_entity, Rook) or
-                    isinstance(source_entity, King)):
+                if (isinstance(source_entity, (Rook, King))):
                     source_entity.did_move()
 
                 # Set up for next turn.
@@ -702,7 +705,7 @@ class Board:
                             piece_move = (piece_x + step * 2, piece_y)
                             piece_moves.append(piece_move)
                             
-                            companion_move = (piece_x + -step, piece_y)
+                            companion_move = (piece_move[0] + -step, piece_y)
                             others.append({
                                 "companion": companion,
                                 "companion_move": companion_move,
@@ -865,12 +868,15 @@ class Board:
             ⊡ ♙ ♙ ♙ ♙ ♙ ♙ ♙
             ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
         """
-        for row in self.board:
-            for square in row:
+        for y in range(8):
+            for x in range(8):
+                self.board[y][x].set_attacked(False)
+                
+                square = self.board[y][x]
                 if isinstance(square, Piece) and square.is_pinned():
-                    square.set_attacked(False)
-                    square.set_pinned(False)
-                    square.set_attacker(None)
+                    self.board[y][x].set_attacked(False)
+                    self.board[y][x].set_pinned(False)
+                    self.board[y][x].set_attacker(None)
 
         attacked_squares = self.get_attacked_squares()
         for square in attacked_squares:
