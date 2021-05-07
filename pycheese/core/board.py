@@ -89,6 +89,7 @@ from pycheese.core.entity import King
 
 from pycheese.core.utils import Boundary
 from pycheese.core.utils import coord_to_json
+from pycheese.core.utils import normalize
 
 from pycheese.core.error import NotInPlayersPossesionException
 from pycheese.core.error import NoPieceAtSpecifiedCoordinateException
@@ -587,14 +588,6 @@ class Board:
             dx = attacker_x - piece_x
             dy = attacker_y - piece_y
 
-            def normalize(x: int) -> int:
-                """Normalize an integer between -1 and 1."""
-                if x > 0:
-                    return 1
-                elif x < 0:
-                     return -1
-                return 0
-
             dx = normalize(dx)
             dy = normalize(dy)
 
@@ -625,7 +618,6 @@ class Board:
         # If the `player` is in check: Find all moves that resolve the check.
         # Therefore check if the piece is in the checked players possesion.
         if self.state == "check" and piece.get_player() == self.player:
-            print("DEBUG: trying to solve check")
             # If the `piece` is of type ``King`` then only moves
             # that lead to non attacked coordinates are valid.
             if isinstance(piece, King):

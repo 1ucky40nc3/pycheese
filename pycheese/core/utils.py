@@ -64,3 +64,10 @@ def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
 
     return json
 
+def normalize(x: int) -> int:
+    """Normalize an integer between -1 and 1."""
+    if x > 0:
+        return 1
+    elif x < 0:
+            return -1
+    return 0
