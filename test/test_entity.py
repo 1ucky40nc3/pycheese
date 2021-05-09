@@ -2,7 +2,7 @@
 """Unittests for code in the entity module.
 
 This module contains code to test the content
-of the pycheese.entity module using pytest.
+of the pycheese.core.entity module using pytest.
 
 Example:
     To run the tests you can for example:
