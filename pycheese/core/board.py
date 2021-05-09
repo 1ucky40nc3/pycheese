@@ -911,6 +911,37 @@ class Board:
         elif promotion_target == "knight":
             return Knight(target_coord, self.player)
 
+    def can_player_castle(self, piece: Type[Piece], 
+                            find_others: bool, attacking: bool) -> bool:
+        """Return if player can castle.
+
+        Args:
+            piece (:obj:`Piece`): Selected piece on the chess board.
+            find_others (bool): States if castling shall be considered.
+            attacking (bool): States if only attacking moves shall be added.
+
+        Returns:
+            bool: Can the player castle?
+        """
+        return (
+            self.state != "check"
+            and isinstance(piece, King) 
+            and find_others 
+            and not attacking
+        )
+
+    def to_json(self) -> dict:
+        """Return a JSON representation of the board."""
+        pieces = self.get_player_pieces("white") + self.get_player_pieces("black")
+        pieces = [piece.to_json() for piece in pieces]
+
+
+        return {
+            "state": self.state,
+            "player": self.player,
+            "pieces": pieces
+        }
+
     def show(self, squares: List[Tuple[int]] = []) -> str:
         """Show the current board.
 
@@ -945,21 +976,4 @@ class Board:
 
         return board
 
-    def can_player_castle(self, piece: Type[Piece], 
-                            find_others: bool, attacking: bool) -> bool:
-        """Return if player can castle.
-
-        Args:
-            piece (:obj:`Piece`): Selected piece on the chess board.
-            find_others (bool): States if castling shall be considered.
-            attacking (bool): States if only attacking moves shall be added.
-
-        Returns:
-            bool: Can the player castle?
-        """
-        return (
-            self.state != "check"
-            and isinstance(piece, King) 
-            and find_others 
-            and not attacking
-        )
+    
