@@ -210,6 +210,21 @@ def test_to_json():
         assert board.to_json() == case
 
 
+def test_from_json():
+    """Test a boards `from_json` function.
+
+    Check if the functions's behavoir is correct.
+    To do so initialize an instance of the Board class
+    and assert the functions output with different setups.
+    """
+    board = Board()
+    
+    json = board.to_json()
+    board.from_json(json)
+
+    assert board.to_json() == json
+
+
 def test_move():
     """Test the boards `move` funtion.
 

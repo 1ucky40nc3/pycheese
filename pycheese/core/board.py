@@ -114,19 +114,29 @@ class Board:
         self.update_attacked_squares()
 
     def initial_board(self) -> List[List[Type[Entity]]]:
-        """Create a nested list of Entitys that represents the chessboard.
+        """Create a nested list of Entitys that represents the chess board.
 
         Note:
             The chess board is build with the position 
             'a8' at the coordinate (0, 0) (h1 --> (7, 7)).
             Reminder: Coordinates have to be translated!
+            This function is called in the constructor.
 
         Example:
             >>> board = Board()
-            >>> assert board.board = board.initial_board()
+            >>> board.board = board.initial_board()
+            >>> print(board.show())
+            ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+            ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ 
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+            ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 
         Returns:
-            list: Nested list of Entitys that represents the chessboard.
+            list: Nested list of Entitys that represents the chess board.
         """
         board = []
 
@@ -157,6 +167,37 @@ class Board:
             Rook((7, 7), "white"),
         ])
         
+        return board
+
+    def empty_board(self) -> List[List[Type[Entity]]]:
+        """Create a nested list of Entitys that represents an empty chess board.
+
+        Note:
+            The chess board is build with the position 
+            'a8' at the coordinate (0, 0) (h1 --> (7, 7)).
+            Reminder: Coordinates have to be translated!
+
+        Example:
+            >>> board = Board()
+            >>> board.board = board.empty_board()
+            >>> print(board.show())
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ 
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+            ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+
+        Returns:
+            list: Nested list of Entitys that represents the chess board.
+        """
+        board = []
+
+        for i in range(8):
+            board.append([Empty((j, i)) for j in range(8)])
+
         return board
 
     def move(self, source_coord: Union[str, Tuple[int, int]], 
@@ -510,7 +551,7 @@ class Board:
                                 else:    
                                     if isinstance(tmp_square, King):
                                         square.set_pinned(True)
-                                        square.set_attacker(attacker=piece)
+                                        square.set_attacker(piece.get_coord())
                                     else:
                                         break 
 
@@ -585,9 +626,9 @@ class Board:
         # in the `attackers` `line_of_attack`
         # (the attackers moves towards the king).
         if piece.is_pinned():
-            attacker = piece.get_attacker()
+            attacker_x, attacker_y = piece.get_attacker()
+            attacker = board[attacker_y][attacker_x]
 
-            attacker_x, attacker_y = attacker.get_coord()
             dx = attacker_x - piece_x
             dy = attacker_y - piece_y
 
@@ -883,13 +924,17 @@ class Board:
             x, y = square
             self.board[y][x].set_attacked(True)
 
-    def next_turn(self) -> None:
-        """Change the player the indicate the next turn."""
-        self.player = "white" if self.player == "black" else "black"
+    def update(self) -> None:
+        """Update the board with respect to the new position."""
         self.update_attacked_squares()
 
         if self.get_player_king().is_attacked():
             self.state = "check"
+
+    def next_turn(self) -> None:
+        """Change the player the indicate the next turn."""
+        self.player = "white" if self.player == "black" else "black"
+        self.update()
 
     def get_promotion_target(self, promotion_target: str, 
                              target_coord: Tuple[int]) -> Type[Piece]:
@@ -941,6 +986,36 @@ class Board:
             "player": self.player,
             "pieces": pieces
         }
+
+    def from_json(self, json: dict) -> None:
+        """Reconstruct the board from JSON."""
+        self.state = json["state"]
+        self.player = json["player"]
+
+        self.board = self.empty_board()
+
+        for json_piece in json["pieces"]:
+            coord = json_piece["coord"]
+            x, y = coord["x"], coord["y"]
+
+            player = json_piece["player"]
+            
+            switch = {
+                "Pawn": Pawn((x, y), player),
+                "Knight": Knight((x, y), player),
+                "Bishop": Bishop((x, y), player),
+                "Rook": Rook((x, y), player),
+                "Queen": Queen((x, y), player),
+                "King": King((x, y), player)
+            }
+
+            piece = switch[json_piece["type"]]
+            piece.set_pinned(json_piece["pinned"])
+            piece.set_attacker(json_piece["attacker"])
+            
+            self.board[y][x] = piece
+
+        self.update()            
 
     def show(self, squares: List[Tuple[int]] = []) -> str:
         """Show the current board.
