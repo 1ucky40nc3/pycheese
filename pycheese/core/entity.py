@@ -17,6 +17,8 @@ from typing import Type
 from typing import Union
 from typing import Tuple
 
+from pycheese.core.utils import coord_to_json
+
 
 class Entity:
     """Abstact class for entities an a chessboard.
@@ -128,18 +130,17 @@ class Piece(Entity):
             self.get_coord(),
         ))
 
-    def to_json(self, recurse: bool = True) -> dict:
+    def to_json(self) -> dict:
         """Return a JSON representation of this objects data."""
         # Convert the coordinate into a JSON object.
-        x, y = self.get_coord()
-        coord = {"x": x, "y": y}
-        
+        coord = coord_to_json(self.get_coord())
+
         # Represent the attacker via it's coordinate 
         # on the board, if the attacker exists.
         attacker = self.get_attacker()
 
         if attacker:
-            attacker = attacker.get_coord()
+            attacker = coord_to_json(attacker)
 
         return {
             "type": self.__class__.__name__,
