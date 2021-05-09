@@ -85,7 +85,7 @@ class Piece(Entity):
         __player (str): Name of the player ("white" or "black").
         __moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
         __pinned (bool): Boolean that states if this entity is pinned by an attacker.
-        __attacker (:obj:`Piece`): Piece that is attacking this entity.
+        __attacker (:obj:`Piece`): Piece that is attacking this entity by it's coord.
     """
     def __init__(self, coord: Tuple[int, int], player: str, moves: Tuple[Tuple[int, int]]):
         super().__init__(coord)
@@ -112,11 +112,11 @@ class Piece(Entity):
         """Get if the piece is pinned."""
         return self.__pinned
 
-    def set_attacker(self, attacker: Union[Type[Piece], None] = None) -> None:
+    def set_attacker(self, attacker: Union[Tuple[int], None] = None) -> None:
         """Set the piece's attacker."""
         self.__attacker = attacker
 
-    def get_attacker(self) -> Union[Type[Piece], None]:
+    def get_attacker(self) -> Union[Tuple[int], None]:
         """Get if the piece's attacker."""
         return self.__attacker
 
