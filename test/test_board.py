@@ -27,69 +27,20 @@ from pycheese.core.entity import Rook
 from pycheese.core.entity import Queen
 from pycheese.core.entity import King
 
-
 from test.utils import assert_obj_attr
 from test.utils import assert_obj_func
+from test.utils import white_pawns
+from test.utils import black_pawns
+from test.utils import white_pieces
+from test.utils import black_pieces
+from test.utils import initial_board
 
 from test.cases.cases_board_to_json import case_initial_board
+from test.cases.cases_board_to_json import case_napolean_attack_board
 
 from test.cases.cases_board_move import case_napolean_attack
 from test.cases.cases_board_move import case_castle_kingside
 from test.cases.cases_board_move import case_castle_queenside
-
-
-def white_pawns() -> List[Type[Pawn]]:
-    """Return a list of all of white's pawns."""
-    return [Pawn((i, 6), "white") for i in range(8)]
-
-
-def black_pawns() -> List[Type[Pawn]]:
-    """Return a list of all of black's pawns."""
-    return [Pawn((i, 1), "black") for i in range(8)]
-
-
-def white_pieces() -> List[Type[Piece]]:
-    """Return a list of all of white's pieces. (Note: Pawns exclusive.)"""
-    return [
-        Rook((0, 7), "white"), 
-        Knight((1, 7), "white"), 
-        Bishop((2, 7), "white"), 
-        Queen((3, 7), "white"), 
-        King((4, 7), "white"), 
-        Bishop((5, 7), "white"), 
-        Knight((6, 7), "white"), 
-        Rook((7, 7), "white"),
-    ]
-
-
-def black_pieces() -> List[Type[Piece]]:
-    """Return a list of all of black's pieces. (Note: Pawns exclusive.)"""
-    return [
-        Rook((0, 0), "black"), 
-        Knight((1, 0), "black"), 
-        Bishop((2, 0), "black"), 
-        Queen((3, 0), "black"), 
-        King((4, 0), "black"), 
-        Bishop((5, 0), "black"), 
-        Knight((6, 0), "black"), 
-        Rook((7, 0), "black"),
-    ]
-
-
-def initial_board() -> List[List[Type[Entity]]]:
-    """Create a nested list of Entitys that represents the chessboard."""
-    board = []
-
-    board.append(black_pieces())
-    board.append(black_pawns())
-
-    for i in range(4):
-        board.append([Empty((j, i + 2)) for j in range(8)])
-
-    board.append(white_pawns())
-    board.append(white_pieces())
-    
-    return board
 
 
 def test_board():
@@ -199,7 +150,6 @@ def test_to_json():
     To do so initialize an instance of the Board class
     and assert the functions output with different setups.
     """
-
     cases = [
         case_initial_board(),
     ]
@@ -217,12 +167,17 @@ def test_from_json():
     To do so initialize an instance of the Board class
     and assert the functions output with different setups.
     """
-    board = Board()
+    cases = [
+        case_initial_board(),
+        case_napolean_attack_board(),
+    ]
     
-    json = board.to_json()
-    board.from_json(json)
+    for case in cases:
+        board = Board(case)
+        assert board.to_json() == case
 
-    assert board.to_json() == json
+        board.from_json(case)
+        assert board.to_json() == case
 
 
 def test_move():
@@ -249,7 +204,5 @@ def test_move():
             
             output = board.move(
                 source_coord, target_coord, promotion_target)
-
-            print(board.show())
 
             assert output == move["output"]
