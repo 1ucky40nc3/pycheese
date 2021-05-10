@@ -9,6 +9,17 @@ of the package in the sustainable way.
 from typing import Union
 from typing import List
 from typing import Any
+from typing import Type
+
+from pycheese.core.entity import Entity
+from pycheese.core.entity import Empty
+from pycheese.core.entity import Piece
+from pycheese.core.entity import Pawn
+from pycheese.core.entity import Knight
+from pycheese.core.entity import Bishop
+from pycheese.core.entity import Rook
+from pycheese.core.entity import Queen
+from pycheese.core.entity import King
 
 
 def assert_obj_attr(obj: object, attr: str, target: object):
