@@ -101,17 +101,32 @@ import copy
 class Board:
     """Object-oriented representation of a chess board.
 
+    Args:
+        json (dict): A JSON representation of an objects this class produces.
+
     Attributes:
         state (str): State of the game (`ongoing`/`check`/`checkmate`/`stalemate`).
         player (str): String that identifies the player whose turn it is.
         board (:obj:`list` of :obj:`list` of :obj:`Entity`): List representing the board.
     """
-    def __init__(self):
+    def __init__(self, json: Union[dict, None] = None):
         self.state = "ongoing"
         self.player = "white"
 
-        self.board = self.initial_board()
-        self.update_attacked_squares()
+        self.board = []
+        self.init(json)
+
+    def init(self, json: Union[dict, None]) -> None:
+        """Initialize the Board classes board.
+        
+        Args:
+            json (dict): A JSON representation of an objects this class produces.
+        """
+        if json:
+            self.from_json(json)
+        else:
+            self.board = self.initial_board()
+            self.update()
 
     def initial_board(self) -> List[List[Type[Entity]]]:
         """Create a nested list of Entitys that represents the chess board.
@@ -354,19 +369,6 @@ class Board:
 
                 # Set up for next turn.
                 self.next_turn()
-
-                # Update game state for new player.
-                player_moves = self.get_player_moves(self.player)
-
-                if self.state == "check":
-                    if player_moves:
-                        self.state = "ongoing"
-                    else:
-                        self.state = "checkmate"
-            
-                else:
-                    if not player_moves:
-                        self.state = "stalemate"
         
         return {
             "state": self.state, 
@@ -928,8 +930,21 @@ class Board:
         """Update the board with respect to the new position."""
         self.update_attacked_squares()
 
+        # Check if king is in check.
         if self.get_player_king().is_attacked():
             self.state = "check"
+
+        player_moves = self.get_player_moves(self.player)
+
+        # Update board state.
+        if self.state == "check":
+            if player_moves:
+                self.state = "check"
+            else:
+                self.state = "checkmate"
+        else:
+            if not player_moves:
+                self.state = "stalemate"
 
     def next_turn(self) -> None:
         """Change the player the indicate the next turn."""
