@@ -50,7 +50,7 @@ class Boundary:
 
 
 def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
-                  output_list: bool = False):
+                  as_list: bool = False):
     """Convert a coordinate into a JSON representation."""
     if isinstance(coord, tuple):
         coord = [coord]
@@ -59,7 +59,7 @@ def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
     for x, y in coord:
         json.append({"x": x, "y": y})
 
-    if len(json) == 1 and not output_list:
+    if len(json) == 1 and not as_list:
         return json[0]
 
     return json

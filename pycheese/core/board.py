@@ -445,7 +445,7 @@ class Board:
             return {
                 "coord": coord_to_json(coord),
                 "piece": entity.to_json(entity),
-                "moves": coord_to_json(piece_moves, output_list=True)
+                "moves": coord_to_json(piece_moves, as_list=True)
             }
         
         raise NoPieceAtSpecifiedCoordinateException(
