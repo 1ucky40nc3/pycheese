@@ -103,6 +103,10 @@ def test_piece():
         assert_obj_func(obj, "get_player", None, player)
         assert_obj_func(obj, "get_moves", None, _moves(obj))
 
+        assert_obj_func(obj, "get_options", None, None)
+        assert_obj_func(obj, "set_options", [[(1, 1)]], None)
+        assert_obj_func(obj, "get_options", None, [(1, 1)])
+
         assert_obj_func(obj, "set_attacked", [True], None)
         assert_obj_func(obj, "is_attacked", None, True)
 
@@ -117,7 +121,14 @@ def test_piece():
         assert "__hash__" in dir(obj)
 
     # Test `to_json` function of a `Pawn`.
-    pawn_json = {'type': 'Pawn', 'player': 'white', 'coord': {'x': 1, 'y': 1}, 'pinned': True, 'attacker': {'x': 1, 'y': 1}}
+    pawn_json = {
+        'type': 'Pawn', 
+        'player': 'white', 
+        'coord': {'x': 1, 'y': 1}, 
+        'options': [{'x': 1, 'y': 1}], 
+        'pinned': True, 
+        'attacker': {'x': 1, 'y': 1}
+    }
     assert pawn_json == pawn.to_json()
 
     # Test a `Pawn`'s special functionality.

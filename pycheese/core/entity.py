@@ -86,6 +86,7 @@ class Piece(Entity):
     Attributes:
         __player (str): Name of the player ("white" or "black").
         __moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
+        __optios (:obj:`list` of :obj:`tuple` of int):  Piece`s options on the board.
         __pinned (bool): Boolean that states if this entity is pinned by an attacker.
         __attacker (:obj:`Piece`): Piece that is attacking this entity by it's coord.
     """
@@ -94,6 +95,7 @@ class Piece(Entity):
         
         self.__player = player
         self.__moves = moves
+        self.__options = None
 
         self.__pinned = False
         self.__attacker = None
@@ -103,8 +105,16 @@ class Piece(Entity):
         return self.__moves
 
     def get_player(self) -> str:
-        """Get the playership attribute of the piece."""
+        """Get the player attribute of the piece."""
         return self.__player
+
+    def set_options(self, options: Union[None, List[Tupe[int]]]):
+        """Set the current options of the piece on the board."""
+        self.__options = options
+
+    def get_options(self) -> Union[None, List[Tupe[int]]]:
+        """Set the current options of the piece on the board."""
+        return self.__options
 
     def set_pinned(self, status: bool) -> None:
         """Set this pieces's pinned attribute."""
@@ -135,6 +145,11 @@ class Piece(Entity):
         # Convert the coordinate into a JSON object.
         coord = coord_to_json(self.get_coord())
 
+        # Convert the piece's options to JSON.
+        options = self.get_options()
+        if options:
+            options = coord_to_json(options, as_list=True)
+
         # Represent the attacker via it's coordinate 
         # on the board, if the attacker exists.
         attacker = self.get_attacker()
@@ -146,8 +161,9 @@ class Piece(Entity):
             "type": self.__class__.__name__,
             "player": self.get_player(),
             "coord": coord,
+            "options": options,
             "pinned": self.is_pinned(),
-            "attacker": attacker
+            "attacker": attacker,
         }
 
 
