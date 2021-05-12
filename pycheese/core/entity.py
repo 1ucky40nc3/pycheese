@@ -145,6 +145,7 @@ class Piece(Entity):
         # Convert the coordinate into a JSON object.
         coord = coord_to_json(self.get_coord())
 
+        # TODO: Consider other (companion) moves for JSON serialization.
         # Convert the piece's options to JSON.
         options = self.get_options()
         if options:

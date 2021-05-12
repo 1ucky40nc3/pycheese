@@ -309,6 +309,8 @@ class Board:
                 raise NotInPlayersPossesionException(
                     "The piece at source coordinate is not in the current player's possesion!")
     
+            # TODO: Get piece moves via options.
+            # TODO: Figure out way to add companion moves to options.
             source_moves, others = self.get_piece_moves(
                 source_entity, source_coord)
 
@@ -928,12 +930,14 @@ class Board:
 
     def update(self) -> None:
         """Update the board with respect to the new position."""
+        # TODO: Update attacker options.
         self.update_attacked_squares()
 
         # Check if king is in check.
         if self.get_player_king().is_attacked():
             self.state = "check"
 
+        # TODO: Update current player options.
         player_moves = self.get_player_moves(self.player)
 
         # Update board state.
@@ -1030,6 +1034,7 @@ class Board:
             
             self.board[y][x] = piece
 
+        # TODO: Set attacked squares via all piece's options.
         self.update()            
 
     def show(self, squares: List[Tuple[int]] = []) -> str:
