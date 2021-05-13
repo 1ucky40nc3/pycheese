@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Type
 from typing import Union
+from typing import List
 from typing import Tuple
 
 from pycheese.core.utils import coord_to_json
@@ -108,11 +109,11 @@ class Piece(Entity):
         """Get the player attribute of the piece."""
         return self.__player
 
-    def set_options(self, options: Union[None, List[Tupe[int]]]):
+    def set_options(self, options: Union[None, List[Tuple[int]]]):
         """Set the current options of the piece on the board."""
         self.__options = options
 
-    def get_options(self) -> Union[None, List[Tupe[int]]]:
+    def get_options(self) -> Union[None, List[Tuple[int]]]:
         """Set the current options of the piece on the board."""
         return self.__options
 
