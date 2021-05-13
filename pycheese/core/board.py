@@ -282,24 +282,24 @@ class Board:
             raise ValueError(
                 "The target coordinate can't be equal to the source coordinate!")
         
-        source_x, source_y = source_coord
-        target_x, target_y = target_coord
+        sx, sy = source_coord
+        tx, ty = target_coord
 
         boundary = Boundary(0, 8)
 
-        if not (boundary.accepts(source_x) and boundary.accepts(source_y)):
+        if not (boundary.accepts(sx) and boundary.accepts(sy)):
             raise ValueError(
                 "The source coordinate is out of bounds: {}".format(source_coord))
         
-        if not (boundary.accepts(target_x) and boundary.accepts(target_y)):
+        if not (boundary.accepts(tx) and boundary.accepts(ty)):
             raise ValueError(
                 "The target coordinate is out of bounds: {}".format(target_coord))
 
         # Construct JSON for the function output.
         event = {"type": None, "extra": None}
         
-        source_entity = self.board[source_y][source_x]
-        target_entity = self.board[target_y][target_x]
+        source_entity = self.board[sy][sx]
+        target_entity = self.board[ty][tx]
 
         if not isinstance(source_entity, Piece):
             raise NoPieceAtSpecifiedCoordinateException(
@@ -335,40 +335,43 @@ class Board:
                             self.board[y][x] = companion
 
                             # Place the `source_entity` at the new coordinate.
-                            source_entity.set_coord((target_x, target_y))
-                            self.board[target_y][target_x] = source_entity
+                            source_entity.set_coord((tx, ty))
+                            self.board[ty][tx] = source_entity
 
                             # Place ``Empty`` at the king former coordinate. 
-                            self.board[source_y][source_x] = Empty((source_x, source_y))
+                            self.board[sy][sx] = Empty((sx, sy))
 
-                            side = "queenside" if target_x < 4 else "kingside" 
+                            side = "queenside" if tx < 4 else "kingside" 
                             event = {"type": "castle", "extra": side}
                             break
                 else:
-                    if (isinstance(source_entity, Pawn) and
-                        (target_y == 0 or target_y == 7)):
+                    if isinstance(source_entity, Pawn) and (ty == 0 or ty == 7):
                         # Request promotion target if is None.
                         if promotion_target is None:
                             event = {"type": "missing_promotion_target", "extra": None}
 
-                        self.board[target_y][target_x] = self.get_promotion_target(
+                        self.board[ty][tx] = self.get_promotion_target(
                             promotion_target, target_coord)
 
                         # TODO: Check castle behavoir rook gets chosen. (Note: New rook hasn't moved.)
                         event = {"type": "promotion", "extra": promotion_target}
 
                     else:
-                        if isinstance(self.board[target_y][target_x], Piece):
+                        if isinstance(self.board[ty][tx], Piece):
+                            # TODO: Add hint if piece of same type could also capture.
                             event = {"type": "captures", "extra": None}
+
+                        if (isinstance(source_entity, (Rook, King))):
+                            # TODO: Check if works!
+                            source_entity.did_move()
                             
+                        # TODO: Add hint if piece of same type could move there.
+                        # Like: event = {"type": "move", "extra": "unique"/"multiple"}
                         source_entity.set_coord(target_coord)
-                        self.board[target_y][target_x] = source_entity
+                        self.board[ty][tx] = source_entity
 
-                    self.board[source_y][source_x] = Empty((source_x, source_y))
+                    self.board[sy][sx] = Empty((sx, sy))
                 
-                if (isinstance(source_entity, (Rook, King))):
-                    source_entity.did_move()
-
                 # Set up for next turn.
                 self.next_turn()
         
@@ -454,7 +457,7 @@ class Board:
                 "There is no piece at the specified coordinate. {}".format(coord))
 
     def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int], find_others: bool = True,
-                        attacking: bool = False, board: List[List[Type[Entity]]] = None) -> List[Tupe[int, int]]:
+                        attacking: bool = False, board: List[List[Type[Entity]]] = None) -> List[Tuple[int, int]]:
         """Find a pieces legal moves.
 
         Args:
@@ -491,7 +494,7 @@ class Board:
         if board is None:
             board = self.board
 
-        piece_x, piece_y = piece_coord
+        px, py = piece_coord
         moves = piece.get_moves()
 
         boundary = Boundary(0, 8)
@@ -508,8 +511,7 @@ class Board:
             # until another `piece` was found or the coordinate is out of bounds.
             # These recoorded coordinates are regarded as the legal moves.
             
-            x = piece_x
-            y = piece_y
+            x, y = px, py
 
             loop = True
             while loop and boundary.accepts(x + dx) and boundary.accepts(y + dy):
@@ -580,8 +582,7 @@ class Board:
                 if piece.get_player() == "white":
                     dy = - dy
 
-                x = piece_x + dx
-                y = piece_y + dy
+                x, y = px + dx, py + dy
 
                 if boundary.accepts(x) and boundary.accepts(y):
                     # Check if a `piece` is at the current coordinate.
@@ -619,7 +620,7 @@ class Board:
                     if piece.get_player() == "white":
                         dy = - dy
 
-                    x, y = piece_x + dx, piece_y + dy
+                    x, y = px + dx, py + dy
                     
                     if isinstance(board[y][x], Empty):
                         piece_moves.append((x, y))
@@ -630,26 +631,24 @@ class Board:
         # in the `attackers` `line_of_attack`
         # (the attackers moves towards the king).
         if piece.is_pinned():
-            attacker_x, attacker_y = piece.get_attacker()
-            attacker = board[attacker_y][attacker_x]
+            ax, ay = piece.get_attacker()
+            attacker = board[ay][ax]
 
-            dx = attacker_x - piece_x
-            dy = attacker_y - piece_y
+            dx = ax - px
+            dy = ay - py
 
             dx = normalize(dx)
             dy = normalize(dy)
 
             line_of_attack = []
 
-            start_x = min(attacker_x, piece_x)
-            stop_x = max(attacker_x, piece_x)
+            start_x, stop_x = min(ax, px), max(ax, px)
             boundary_x = Boundary(start_x, stop_x)
             
-            start_y = min(attacker_y, piece_y)
-            stop_y = max(attacker_y, piece_y)
+            start_y, stop_y = min(ay, py), max(ay, py)
             boundary_y = Boundary(start_y, stop_y)
 
-            x, y = piece_x, piece_y
+            x, y = px, py
             while boundary_x.accepts(x + dx) and boundary_y.accepts(y + dy):
                 x += dx
                 y += dy
@@ -707,7 +706,7 @@ class Board:
                         x, y = move
 
                         tmp_board[y][x] = piece
-                        tmp_board[piece_y][piece_x] = Empty((piece_x, piece_y))
+                        tmp_board[py][px] = Empty((px, py))
 
                         tmp_attacked_squares = self.get_attacked_squares(board=tmp_board)
 
@@ -726,13 +725,11 @@ class Board:
             # Check if king has already moved.
             if not piece.get_moved():
                 for step in range(-1, 2, 2):
-                    companion_x = 0 if step == -1 else 7
-                    companion = board[piece_y][companion_x]
+                    cx = 0 if step == -1 else 7
+                    companion = board[py][cx]
 
                     # Check if the `companion` of type `Rook` has already moved.
-                    if (isinstance(companion, Rook)
-                        and not companion.get_moved()):
-
+                    if (isinstance(companion, Rook) and not companion.get_moved()):
                         # Check for obstructed or attacked squares. 
                         path_not_obstructed = True
 
@@ -740,21 +737,20 @@ class Board:
                         stop = 7 if step == 1 else 4
 
                         for x in range(start, stop):
-                            square = board[piece_y][x]
+                            square = board[py][x]
 
                             if isinstance(square, Piece) or square.is_attacked():
                                 path_not_obstructed = False
                                 break
 
                         if path_not_obstructed:
-                            piece_move = (piece_x + step * 2, piece_y)
-                            piece_moves.append(piece_move)
+                            mx, my = px + step * 2, py
+                            piece_moves.append((mx, my))
                             
-                            companion_move = (piece_move[0] + -step, piece_y)
                             others.append({
                                 "companion": companion,
-                                "companion_move": companion_move,
-                                "piece_move": piece_move,
+                                "companion_move": (mx - step, py),
+                                "piece_move": (mx, my),
                             })
 
         return piece_moves, others
