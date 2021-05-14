@@ -11,6 +11,16 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+from pycheese.core.entity import Piece
+from pycheese.core.entity import Pawn
+from pycheese.core.entity import Knight
+from pycheese.core.entity import Bishop
+from pycheese.core.entity import Rook
+from pycheese.core.entity import Queen
+from pycheese.core.entity import King
+
+from pycheese.core.error import NotWhitelistedException
+
 
 class Boundary:
     """Class that is used to check if a value is in a boundary.
@@ -88,3 +98,27 @@ def normalize(x: int) -> int:
     elif x < 0:
             return -1
     return 0
+
+
+def str_to_piece(self, type: str, coord: Tuple[int], player: str, whitelist: Union[None, set] = None) -> Type[Piece]:
+    """Return a piece via it's type and other params.
+
+    Args:
+        type (str): Name of the class of the `Piece` object. 
+        coord (:obj:`tuple` of :obj:`int`): Coordinate of the piece on board.
+        player (str): Name of the piece's player.
+        whitelist (:obj:`set` of str): Whitelist for piece types.
+
+    Returns:
+        piece: A default piece object of given type and coord as well as player.
+
+    Raises:
+        NotWhitelistedException: The given piece type is not whitelisted!
+    """
+    if whitelist and type not in whitelist:
+        raise NotWhitelistedException(f"The given piece type is not whitelisted! {type} not in {whitelist}")
+
+    switch = {"Pawn": Pawn, "Knight": Knight, "Bishop": Bishop,
+              "Rook": Rook, "Queen": Queen, "King": King}
+
+    return switch[type](coord, player)

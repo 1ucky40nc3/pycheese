@@ -15,3 +15,6 @@ class NotInPlayersPossesionException(PyCheeseException):
     pass
 class MoveNotLegalException(PyCheeseException):
     pass
+
+class NotWhitelistedException(PyCheeseException):
+    pass
