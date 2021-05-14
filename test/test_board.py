@@ -59,8 +59,8 @@ def test_initial_board():
     assert_obj_func(board, "initial_board", None, initial_board())
 
 
-def test_get_piece_moves():
-    """Test a boards `get_piece_moves` function.
+def test_get_piece_options():
+    """Test a boards `get_piece_options` function.
 
     Check if the functions's behavoir is correct.
     To do so initialize an instance of the Board class
@@ -83,7 +83,7 @@ def test_get_piece_moves():
         x, y = case["coord"]["x"], case["coord"]["y"]
 
         piece = board.board[y][x]
-        board_piece_moves = board.get_piece_moves(piece, (x, y))
+        board_piece_moves = board.get_piece_options(piece, (x, y))
 
         assert sorted(board_piece_moves) == sorted(case["piece_moves"])
 

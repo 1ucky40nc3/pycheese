@@ -104,8 +104,8 @@ def test_piece():
         assert_obj_func(obj, "get_moves", None, _moves(obj))
 
         assert_obj_func(obj, "get_options", None, None)
-        assert_obj_func(obj, "set_options", [[(1, 1)]], None)
-        assert_obj_func(obj, "get_options", None, [(1, 1)])
+        assert_obj_func(obj, "set_options", [{"moves":[(1, 1)], "others": None}], None)
+        assert_obj_func(obj, "get_options", None, {"moves":[(1, 1)], "others": None})
 
         assert_obj_func(obj, "set_attacked", [True], None)
         assert_obj_func(obj, "is_attacked", None, True)
@@ -125,7 +125,7 @@ def test_piece():
         'type': 'Pawn', 
         'player': 'white', 
         'coord': {'x': 1, 'y': 1}, 
-        'options': [{'x': 1, 'y': 1}], 
+        'options': {"moves":[(1, 1)], "others": None}, 
         'pinned': True, 
         'attacker': {'x': 1, 'y': 1}
     }

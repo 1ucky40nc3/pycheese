@@ -87,9 +87,7 @@ from pycheese.core.entity import Rook
 from pycheese.core.entity import Queen
 from pycheese.core.entity import King
 
-from pycheese.core.utils import Boundary
-from pycheese.core.utils import coord_to_json
-from pycheese.core.utils import normalize
+import pycheese.core.utils as utils
 
 from pycheese.core.error import NotInPlayersPossesionException
 from pycheese.core.error import NoPieceAtSpecifiedCoordinateException
@@ -285,7 +283,7 @@ class Board:
         sx, sy = source_coord
         tx, ty = target_coord
 
-        boundary = Boundary(0, 8)
+        boundary = utils.Boundary(0, 8)
 
         if not (boundary.accepts(sx) and boundary.accepts(sy)):
             raise ValueError(
@@ -311,7 +309,7 @@ class Board:
     
             # TODO: Get piece moves via options.
             # TODO: Figure out way to add companion moves to options.
-            source_moves, others = self.get_piece_moves(
+            source_moves, others = self.get_piece_options(
                 source_entity, source_coord)
 
             if target_coord not in source_moves:
@@ -321,14 +319,15 @@ class Board:
             else:
                 if others:
                     for element in others:
-                        companion = element["companion"]
-                        x, y = element["companion_move"]
-                        piece_move = element["piece_move"]
+                        cx, cy = element["companion"]
+                        companion = self.board[cy][cx]
 
-                        if target_coord == piece_move:
+                        x, y = element["cmove"]
+                        pmove = element["pmove"]
+
+                        if target_coord == pmove:
                             # Place ``Empty`` at the companions former coordinate.
-                            companion_x, companion_y = companion.get_coord()
-                            self.board[companion_y][companion_x] = Empty((companion_x, companion_y))
+                            self.board[cy][cx] = Empty((cx, cy))
 
                             # Place the `companion` at the new coordinate.
                             companion.set_coord((x, y))
@@ -350,8 +349,8 @@ class Board:
                         if promotion_target is None:
                             event = {"type": "missing_promotion_target", "extra": None}
 
-                        self.board[ty][tx] = self.get_promotion_target(
-                            promotion_target, target_coord)
+                        self.board[ty][tx] = utils.str_to_piece(
+                            promotion_target, target_coord, self.player, whitelist={"Queen", "Rook", "Bishop", "Knight"})
 
                         # TODO: Check castle behavoir rook gets chosen. (Note: New rook hasn't moved.)
                         event = {"type": "promotion", "extra": promotion_target}
@@ -377,8 +376,8 @@ class Board:
         
         return {
             "state": self.state, 
-            "source_coord": coord_to_json(source_coord), 
-            "target_coord": coord_to_json(target_coord),
+            "source_coord": utils.coord_to_json(source_coord), 
+            "target_coord": utils.coord_to_json(target_coord),
             "event": event
         }
 
@@ -432,10 +431,9 @@ class Board:
         x, y = coord
 
         # Check if the coordinate is on the chess board.
-        boundary = Boundary(0, 8)
+        boundary = utils.Boundary(0, 8)
         if not (boundary.accepts(x) and boundary.accepts(y)):
-            raise ValueError(
-                "The piece coordinate is out of bounds: {}".format(coord))
+            raise ValueError(f"The piece coordinate is out of bounds: {coord}")
 
         entity = self.board[y][x]
 
@@ -444,19 +442,19 @@ class Board:
                 raise NotInPlayersPossesionException(
                     "The piece at source coordinate is not in the current player's possesion!")
     
-            piece_moves, _ = self.get_piece_moves(
+            piece_moves, _ = self.get_piece_options(
                 entity, coord, find_others=False)
 
             return {
-                "coord": coord_to_json(coord),
+                "coord": utils.coord_to_json(coord),
                 "piece": entity.to_json(entity),
-                "moves": coord_to_json(piece_moves, as_list=True)
+                "moves": utils.coord_to_json(piece_moves, as_list=True)
             }
         
         raise NoPieceAtSpecifiedCoordinateException(
                 "There is no piece at the specified coordinate. {}".format(coord))
 
-    def get_piece_moves(self, piece: Type[Piece], piece_coord: Tuple[int, int], find_others: bool = True,
+    def get_piece_options(self, piece: Type[Piece], piece_coord: Tuple[int, int], find_others: bool = True,
                         attacking: bool = False, board: List[List[Type[Entity]]] = None) -> List[Tuple[int, int]]:
         """Find a pieces legal moves.
 
@@ -497,7 +495,7 @@ class Board:
         px, py = piece_coord
         moves = piece.get_moves()
 
-        boundary = Boundary(0, 8)
+        boundary = utils.Boundary(0, 8)
         for move in moves:
             dx, dy = move
 
@@ -637,16 +635,16 @@ class Board:
             dx = ax - px
             dy = ay - py
 
-            dx = normalize(dx)
-            dy = normalize(dy)
+            dx = utils.normalize(dx)
+            dy = utils.normalize(dy)
 
             line_of_attack = []
 
             start_x, stop_x = min(ax, px), max(ax, px)
-            boundary_x = Boundary(start_x, stop_x)
+            boundary_x = utils.Boundary(start_x, stop_x)
             
             start_y, stop_y = min(ay, py), max(ay, py)
-            boundary_y = Boundary(start_y, stop_y)
+            boundary_y = utils.Boundary(start_y, stop_y)
 
             x, y = px, py
             while boundary_x.accepts(x + dx) and boundary_y.accepts(y + dy):
@@ -747,10 +745,11 @@ class Board:
                             mx, my = px + step * 2, py
                             piece_moves.append((mx, my))
                             
+                            # TODO: Update comments that reference companion as `Piece`.
                             others.append({
-                                "companion": companion,
-                                "companion_move": (mx - step, py),
-                                "piece_move": (mx, my),
+                                "companion": companion.get_coord(),
+                                "cmove": (mx - step, py),
+                                "pmove": (mx, my),
                             })
 
         return piece_moves, others
@@ -805,8 +804,8 @@ class Board:
             if isinstance(piece, King):
                 return piece    
 
-    def get_player_moves(self, player: str, board: List[List[Type[Entity]]] = None, 
-                         attacking: bool = False, with_pieces: bool = False) -> List[Tuple[int]]:
+    def get_player_options(self, player: str, board: List[List[Type[Entity]]] = None, 
+                           attacking: bool = False, with_pieces: bool = False) -> List[Tuple[int]]:
         """Find all valid moves of a player's pieces.
 
         Args:
@@ -830,7 +829,7 @@ class Board:
         pieces = self.get_player_pieces(player, board=board)
         
         for piece in pieces:
-            piece_moves, _ = self.get_piece_moves(
+            piece_moves, _ = self.get_piece_options(
                 piece, piece.get_coord(), attacking=attacking, board=board)
 
             for move in piece_moves:
@@ -865,7 +864,7 @@ class Board:
 
         player = "white" if self.player == "black" else "black"
 
-        attacked_squares = self.get_player_moves(
+        attacked_squares = self.get_player_options(
             player, board=board, attacking=True, with_pieces=with_pieces)
 
         return attacked_squares
@@ -934,7 +933,7 @@ class Board:
             self.state = "check"
 
         # TODO: Update current player options.
-        player_moves = self.get_player_moves(self.player)
+        player_moves = self.get_player_options(self.player)
 
         # Update board state.
         if self.state == "check":
@@ -951,25 +950,7 @@ class Board:
         self.player = "white" if self.player == "black" else "black"
         self.update()
 
-    def get_promotion_target(self, promotion_target: str, 
-                             target_coord: Tuple[int]) -> Type[Piece]:
-        """Get the piece that is requested when a pawn reaches the enemy's baseline.
 
-        Note:
-            The promotion target can either be: queen/rook/bishop/knight
-
-        Args:
-            promotion_target (str, optional): String that identifies piece to promote pawn into.
-            target_coord (str or :obj:`tuple` of :obj:`int`, optional): Target coordinate of entity on board.    
-        """
-        if promotion_target == "queen":
-            return Queen(target_coord, self.player)
-        elif promotion_target == "rook":
-            return Rook(target_coord, self.player)
-        elif promotion_target == "bishop":
-            return Bishop(target_coord, self.player)
-        elif promotion_target == "knight":
-            return Knight(target_coord, self.player)
 
     def can_player_castle(self, piece: Type[Piece], 
                             find_others: bool, attacking: bool) -> bool:
@@ -1009,25 +990,17 @@ class Board:
 
         self.board = self.empty_board()
 
-        for json_piece in json["pieces"]:
-            coord = json_piece["coord"]
-            x, y = coord["x"], coord["y"]
-
-            player = json_piece["player"]
+        for i in json["pieces"]:
+            coord = utils.json_to_coord(i["coord"])
+            player = i["player"]
             
-            switch = {
-                "Pawn": Pawn((x, y), player),
-                "Knight": Knight((x, y), player),
-                "Bishop": Bishop((x, y), player),
-                "Rook": Rook((x, y), player),
-                "Queen": Queen((x, y), player),
-                "King": King((x, y), player)
-            }
+            piece = utils.str_to_piece(i["type"], coord, player)
 
-            piece = switch[json_piece["type"]]
-            piece.set_pinned(json_piece["pinned"])
-            piece.set_attacker(json_piece["attacker"])
-            
+            piece.set_pinned(i["pinned"])
+            piece.set_attacker(i["attacker"])
+
+            # TODO: Add piece options.
+            x, y = coord
             self.board[y][x] = piece
 
         # TODO: Set attacked squares via all piece's options.

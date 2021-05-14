@@ -18,7 +18,7 @@ from typing import Union
 from typing import List
 from typing import Tuple
 
-from pycheese.core.utils import coord_to_json
+import pycheese.core.utils as utils
 
 
 class Entity:
@@ -87,7 +87,7 @@ class Piece(Entity):
     Attributes:
         __player (str): Name of the player ("white" or "black").
         __moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
-        __optios (:obj:`list` of :obj:`tuple` of int):  Piece`s options on the board.
+        __options (dict):  Piece`s options on the board. With a shape of {"moves": ..., "other": ...}
         __pinned (bool): Boolean that states if this entity is pinned by an attacker.
         __attacker (:obj:`Piece`): Piece that is attacking this entity by it's coord.
     """
@@ -109,11 +109,11 @@ class Piece(Entity):
         """Get the player attribute of the piece."""
         return self.__player
 
-    def set_options(self, options: Union[None, List[Tuple[int]]]):
+    def set_options(self, options: dict):
         """Set the current options of the piece on the board."""
         self.__options = options
 
-    def get_options(self) -> Union[None, List[Tuple[int]]]:
+    def get_options(self) -> dict:
         """Set the current options of the piece on the board."""
         return self.__options
 
@@ -144,20 +144,34 @@ class Piece(Entity):
     def to_json(self) -> dict:
         """Return a JSON representation of this objects data."""
         # Convert the coordinate into a JSON object.
-        coord = coord_to_json(self.get_coord())
+        coord = utils.coord_to_json(self.get_coord())
 
         # TODO: Consider other (companion) moves for JSON serialization.
         # Convert the piece's options to JSON.
         options = self.get_options()
         if options:
-            options = coord_to_json(options, as_list=True)
+            moves = utils.coord_to_json(
+                options["moves"], as_list=True)
+
+            others = options["others"]
+            for i in range(len(others)):
+                companion = others[i]["companion"]
+                cmove = others[i]["cmove"]
+                pmove = others[i]["pmove"]
+
+                others[i] = {
+                    "companion": utils.coord_to_json(companion),
+                    "cmove": utils.coord_to_json(cmove),
+                    "pmove": utils.coord_to_json(pmove)
+                }
+
 
         # Represent the attacker via it's coordinate 
         # on the board, if the attacker exists.
         attacker = self.get_attacker()
 
         if attacker:
-            attacker = coord_to_json(attacker)
+            attacker = utils.coord_to_json(attacker)
 
         return {
             "type": self.__class__.__name__,
