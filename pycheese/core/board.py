@@ -829,8 +829,14 @@ class Board:
         pieces = self.get_player_pieces(player, board=board)
         
         for piece in pieces:
-            piece_moves, _ = self.get_piece_options(
+            piece_moves, piece_other = self.get_piece_options(
                 piece, piece.get_coord(), attacking=attacking, board=board)
+
+            x, y = piece.get_coord()
+            self.board[y][x].set_options({
+                "moves": piece_moves,
+                "other": piece_other
+            })            
 
             for move in piece_moves:
                 moves.append(move)
@@ -868,6 +874,20 @@ class Board:
             player, board=board, attacking=True, with_pieces=with_pieces)
 
         return attacked_squares
+
+    def clear(self) -> None:
+        """Cleares the boards entities dynamic attributes."""
+        for y in range(8):
+            for x in range(8):
+                entity = self.board[y][x]
+
+                entity.set_attacked(False)
+                if isinstance(entity, Piece):
+                    entity.set_options(None)
+                    entity.set_pinned(False)
+                    entity.set_attacker(None)
+                
+                self.board[y][x] = entity
     
     def update_attacked_squares(self) -> None:
         """Update the pieces `attacked` and `pinned` attributes.
@@ -908,15 +928,6 @@ class Board:
             ⊡ ♙ ♙ ♙ ♙ ♙ ♙ ♙
             ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
         """
-        for y in range(8):
-            for x in range(8):
-                self.board[y][x].set_attacked(False)
-                
-                square = self.board[y][x]
-                if isinstance(square, Piece) and square.is_pinned():
-                    self.board[y][x].set_attacked(False)
-                    self.board[y][x].set_pinned(False)
-                    self.board[y][x].set_attacker(None)
 
         attacked_squares = self.get_attacked_squares()
         for square in attacked_squares:
@@ -924,8 +935,11 @@ class Board:
             self.board[y][x].set_attacked(True)
 
     def update(self) -> None:
+        self.clear()
         """Update the board with respect to the new position."""
         # TODO: Update attacker options.
+        # TODO: Move update attacked squares components here.
+        # TODO: Add clear function to 
         self.update_attacked_squares()
 
         # Check if king is in check.
@@ -949,8 +963,6 @@ class Board:
         """Change the player the indicate the next turn."""
         self.player = "white" if self.player == "black" else "black"
         self.update()
-
-
 
     def can_player_castle(self, piece: Type[Piece], 
                             find_others: bool, attacking: bool) -> bool:
