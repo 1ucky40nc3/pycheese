@@ -50,7 +50,7 @@ class Boundary:
 
 
 def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
-                  as_list: bool = False):
+                  as_list: bool = False) -> dict:
     """Convert a coordinate into a JSON representation."""
     if isinstance(coord, tuple):
         coord = [coord]
@@ -63,6 +63,23 @@ def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
         return json[0]
 
     return json
+
+
+def json_to_coord(json: dict, as_list: bool = False) -> Union[List[Tuple[int, int]], Tuple[int, int]]:
+    """Convert a coordinate in JSON representation into the internal."""
+    if isinstance(json, dict):
+        json = [json]
+
+    coord = []
+    for i in json:
+        x, y = i["x"], i["y"]
+        coord.append((x, y))
+
+    if len(coord) == 1 and not as_list:
+        return coord[0]
+
+    return coord
+
 
 def normalize(x: int) -> int:
     """Normalize an integer between -1 and 1."""
