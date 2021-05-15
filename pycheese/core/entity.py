@@ -25,10 +25,10 @@ class Entity:
     """Abstact class for entities an a chessboard.
     
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
 
     Attributes:
-        __coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
+        __coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
         __attacked (bool): Boolean that states if this entity is attacked.
     """
     def __init__(self, coord: Tuple[int, int]):
@@ -60,7 +60,7 @@ class Empty(Entity):
     """A class that represents empty squares on a chessboard.
     
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
     
     Example:
         >>> empty = Empty(coord)
@@ -80,16 +80,16 @@ class Piece(Entity):
     This means a piece could be a Pawn, Knight, Bishop, Rook, Queen or King.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
-        moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
+        moves (`tuple` of `tuple` of int): Piece`s set of valid moves.
 
     Attributes:
-        __player (str): Name of the player ("white" or "black").
-        __moves (:obj:`tuple` of :obj:`tuple` of int): Piece`s set of valid moves.
-        __options (dict):  Piece`s options on the board. With a shape of {"moves": ..., "other": ...}
-        __pinned (bool): Boolean that states if this entity is pinned by an attacker.
-        __attacker (:obj:`Piece`): Piece that is attacking this entity by it's coord.
+        __player (`str`): Name of the player ("white" or "black").
+        __moves (`tuple` of `tuple` of int): Piece`s set of valid moves.
+        __options (`dict`):  Piece`s options on the board. With a shape of {"moves": ..., "other": ...}
+        __pinned (`bool`): Boolean that states if this entity is pinned by an attacker.
+        __attacker (`Piece`): Piece that is attacking this entity by it's coord.
     """
     def __init__(self, coord: Tuple[int, int], player: str, moves: Tuple[Tuple[int, int]]):
         super().__init__(coord)
@@ -190,14 +190,14 @@ class Pawn(Piece):
         Pawns have an special set of moves that are not given to the abstract class.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (:obj:`tuple` of :obj:`tuple` of int): Subset set of a pawns valid moves.
-        attack_moves (:obj:`tuple` of :obj:`tuple` of int): Set of valid attacking moves.
-        special_move (:obj:`tuple` of int): Pawn`s special move (2^ from start).
-        __start_coord (:obj:`tuple` of int): The pawns starting position on the chessboard.
+        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
+        attack_moves (`tuple` of `tuple` of `int`): Set of valid attacking moves.
+        special_move (`tuple` of `int`): Pawn`s special move (2^ from start).
+        __start_coord (`tuple` of `int`): The pawns starting position on the chessboard.
 
     Example:
         >>> pawn = Pawn(coord, player)
@@ -235,11 +235,11 @@ class Knight(Piece):
     """Object-oriented represenation of a knight.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (:obj:`tuple` of :obj:`tuple` of int): Subset set of a pawns valid moves.
+        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
 
     Example:
         >>> knight = Knight(coord, player)
@@ -261,11 +261,11 @@ class Bishop(Piece):
     """Object-oriented represenation of a bishop.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (:obj:`tuple` of :obj:`tuple` of int): Subset set of a pawns valid moves.
+        moves (`tuple` of `tuple` of int): Subset set of a pawns valid moves.
 
     Example:
         >>> knight = Knight(coord, player)
@@ -285,12 +285,12 @@ class Rook(Piece):
     """Object-oriented represenation of a rook.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (:obj:`tuple` of :obj:`tuple` of int): Subset set of a pawns valid moves.
-        __moved (bool): States if the rook has already moved.
+        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
+        __moved (`bool`): States if the rook has already moved.
 
     Example:
         >>> rook = Rook(coord, player)
@@ -320,11 +320,11 @@ class Queen(Piece):
     """Object-oriented represenation of a queen.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (:obj:`tuple` of :obj:`tuple` of int): Subset set of a pawns valid moves.
+        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
 
     Example:
         >>> queen = Queen(coord, player)
@@ -345,11 +345,11 @@ class King(Piece):
     """Object oriented represenation of a king.
 
     Args:
-        coord (:obj:`tuple` of :obj:`int`): Coordinate of the entity on the chessboard.
-        player (str): Name of the player ("white" or "black").
+        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (:obj:`tuple` of :obj:`tuple` of int): Subset set of a pawns valid moves.
+        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
         __moved (bool): States if the king has already moved.
 
     Example:
