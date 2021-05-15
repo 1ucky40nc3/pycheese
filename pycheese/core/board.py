@@ -229,8 +229,7 @@ class Board:
     
             # TODO: Get piece moves via options.
             # TODO: Figure out way to add companion moves to options.
-            source_moves, others = self.get_piece_options(
-                source_entity, source_coord)
+            source_moves, others = self.get_piece_options(source_entity)
 
             if target_coord not in source_moves:
                 raise MoveNotLegalException(
@@ -362,8 +361,7 @@ class Board:
                 raise NotInPlayersPossesionException(
                     "The piece at source coordinate is not in the current player's possesion!")
     
-            piece_moves, _ = self.get_piece_options(
-                entity, coord, find_others=False)
+            piece_moves, _ = self.get_piece_options(entity, find_others=False)
 
             return {
                 "coord": utils.coord_to_json(coord),
@@ -375,14 +373,13 @@ class Board:
                 "There is no piece at the specified coordinate. {}".format(coord))
 
     def get_piece_options(self, piece: Type[Piece], board: List[List[Type[Entity]]] = None,
-                          find_others: bool = True, attacking: bool = False, ) -> List[Tuple[int, int]]:
+                          find_others: bool = True, attacking: bool = False) -> List[Tuple[int, int]]:
         """Find a pieces legal moves.
 
         Args:
             piece (`Piece`): A piece of the current player.
-            piece_coord (`tuple` of `int`): Coordinate of the piece on the chessboard.
-            find_other (bool, optional): States if information about companion moves shall be returned.
-            attacking (bool, optional): States if only moves that attack enemy pieces shall be returned.
+            find_other (`bool`, optional): States if information about companion moves shall be returned.
+            attacking (`bool`, optional): States if only moves that attack enemy pieces shall be returned.
             board (`list` of `list` of `Entity`, optional): List representing a board.
 
         Returns:
@@ -420,8 +417,7 @@ class Board:
                 return piece.get_options()
 
         boundary = utils.Boundary(0, 8)
-        for move in pmoves:
-            dx, dy = move
+        for dx, dy in pmoves:
 
             # Invert the movement for white `pieces`, 
             # because of the way the board has ben initialized.
@@ -441,55 +437,51 @@ class Board:
 
                 # TODO: PLS Rewrite!!!
                 # Check if a `piece` is at the current coordinate.
-                square = board[y][x]
-                if isinstance(square, Piece):
-                    # If the `piece` is owned by the current `player` break.
-                    same_player_possesion = square.get_player() == piece.get_player()
-
+                entity = board[y][x]
+                if isinstance(entity, Piece):
                     if attacking:
-                        if same_player_possesion:
-                            loop = False
+                        loop = False
                     else:
-                        if same_player_possesion:
-                            break
-                        else:
+                        if self.is_other_player_piece(entity, piece):
                             loop = False
+                        else:
+                            break
 
                     # The `piece` could take the king. The king is in `check`
                     # and no more moves of the `piece` have to be checked.
-                    check = False
-                    if isinstance(square, King) and not attacking:
+                    if not attacking and self.is_other_player_king(entity):
                         self.state = "check"
-                        check = True
                         loop = False
     
                     # Check if the `piece` could check the enemy king
                     # if a enemy `piece` would move. Set this `piece` to `pinned`.
-                    if not check and isinstance(piece, (Bishop, Rook, Queen)): 
-                        tmp_x = x
-                        tmp_y = y
+                    if not self.is_check() and isinstance(piece, (Bishop, Rook, Queen)): 
+                        tmp_x, tmp_y = x, y
+
                         while boundary.accepts((tmp_x + dx, tmp_y + dy)):
                             tmp_x += dx
                             tmp_y += dy
 
-                            tmp_square = board[tmp_y][tmp_x]
-                            if isinstance(tmp_square, Piece):
-                                if tmp_square.get_player() != piece.get_player() and isinstance(tmp_square, King):
-                                    sx, sy = square.get_coord()
-                                    self.board[sx, sy].set_pinned(True)
-                                    self.board[sx, sy].set_attacker(piece.get_coord())
+                            tmp_entity = board[tmp_y][tmp_x]
 
+                            if isinstance(tmp_entity, Piece):
+                                if self.is_other_player_king(tmp_entity):
+                                    sx, sy = entity.get_coord()
+
+                                    self.board[sy][sx].set_pinned(True)
+                                    self.board[sy][sx].set_attacker(piece.get_coord())
+                                break
+                                
                 moves.append((x, y))
                 
-                # End the loop for `pieces` of type ``Pawn``, ``Knight`` or ``King``,
-                # because they can only move one square (except ``Pawns``).
+                # End the loop for `pieces` of type ``Pawn``, ``Knight`` or ``King``.
                 if isinstance(piece, (Pawn, Knight, King)):
                     break
 
         # Check if the `piece` is of type ``Pawn``
         # and can execute it's unique movement.
         if isinstance(piece, Pawn):
-            attacking_moves = []
+            amoves = []
 
             pmoves = piece.get_attack_moves()
             for move in pmoves:
@@ -504,34 +496,29 @@ class Board:
 
                 if boundary.accepts((x, y)):
                     # Check if a `piece` is at the current coordinate.
-                    square = board[y][x]
+                    entity = board[y][x]
 
                     # Add the coordinate to `attacking_moves` if
                     # a ``Piece`` of the enemy is at the coordinate.
-                    if (not attacking and isinstance(square, Piece)):
-                        if square.get_player() != piece.get_player():
-                            attacking_moves.append((x, y))
+                    if not attacking and isinstance(entity, Piece):
+                        if self.is_other_player_piece(entity, piece):
+                            amoves.append((x, y))
                     # Add the coordinate to `attacking_moves` regardless
                     # of the fact that a ``Piece`` is at the coordinate.
                     # Because all attacking moves are recoorded.
                     # Check only if a chess piece is in the opponent's possession.
                     elif attacking:
-                        if isinstance(square, Piece):
-                            if square.get_player() != piece.get_player():
-                                attacking_moves.append((x, y))
-                        else:
-                            attacking_moves.append((x, y))    
+                        amoves.append((x, y))    
 
             # If only attacking moves shall be recoorded,
             # `piece_moves` equal `attacking_moves`.
             if attacking:
-                moves = attacking_moves
+                moves = amoves
 
             # Else append the `attacking_moves` to `piece_moves`
             # and check if the ``Pawn`` can execute it's special move.
             else:
-                for move in attacking_moves:
-                    moves.append(move)
+                moves += amoves
 
                 if piece.can_special():
                     dx, dy = piece.get_special_move()
@@ -551,7 +538,6 @@ class Board:
         # (the attackers moves towards the king).
         if piece.is_pinned():
             ax, ay = piece.get_attacker()
-            attacker = board[ay][ax]
 
             dx, dy = ax - px, ay - py
             dx, dy = utils.normalize(dx), utils.normalize(dy)
@@ -572,9 +558,8 @@ class Board:
 
             moves = list(filter(lambda move: move in tmp_moves, moves))
 
-        # If the `player` is in check: Find all moves that resolve the check.
-        # Therefore check if the piece is in the checked players possesion.
-        if self.state == "check" and piece.get_player() == self.player:
+        # If the current player is in check: Find all moves that resolve the check.
+        if self.is_check() and not self.is_other_player_piece(piece):
             # If the `piece` is of type ``King`` then only moves
             # that lead to non attacked coordinates are valid.
             if isinstance(piece, King):
@@ -607,9 +592,11 @@ class Board:
                 for move in moves:
                     if move in other_player_options:
                         tmp_board = copy.deepcopy(board)
+                        tmp_piece = copy.deepcopy(piece)
                         x, y = move
 
-                        tmp_board[y][x] = piece
+                        tmp_piece.set_coord(move)
+                        tmp_board[y][x] = tmp_piece
                         tmp_board[py][px] = Empty((px, py))
 
                         if king.get_coord() not in self.get_other_player_options(board=tmp_board):
@@ -638,9 +625,9 @@ class Board:
                         start, stop = (5, 7) if step == 1 else (1, 4)
 
                         for x in range(start, stop):
-                            square = board[py][x]
+                            entity = board[py][x]
 
-                            if isinstance(square, Piece) or square.is_attacked():
+                            if isinstance(entity, Piece) or entity.is_attacked():
                                 path_not_obstructed = False
                                 break
 
@@ -656,6 +643,31 @@ class Board:
                             })
 
         return moves, others
+
+    def is_other_player_piece(self, piece: Type[Piece], other: Optional[Type[Piece]] = None) -> bool:
+        """Return if the piece is owned by the other player.
+
+        Args:
+            piece (`Piece`): The piece to check the player.
+            other (`Piece`, optional): Optional piece to reference a player.
+        """
+        if other:
+            return piece.get_player() != other.get_player()
+        return piece.get_player() != self.player
+
+    def is_other_player_king(self, piece: Type[Piece], other: Optional[Type[Piece]] = None) -> bool:
+        """Return if the piece is a king owned by the other player.
+
+        Args:
+            piece (`Piece`): The piece to check the player.
+            other (`Piece`, optional): Optional piece to reference a player.
+        """
+        player = other.get_player() if other else self.player
+        return isinstance(piece, King) and piece.get_player() != player
+
+    def is_check(self) -> bool:
+        """Return if the board's state is 'check'."""
+        return self.state == "check"
 
     def get_player_pieces(self, player: str, board: List[List[Type[Entity]]] = None) -> List[Type[Piece]]:
         """Get a player's pieces.
@@ -730,7 +742,7 @@ class Board:
         
         for piece in self.get_player_pieces(player, board=board):
             moves, other = self.get_piece_options(
-                piece, piece.get_coord(), attacking=attacking, board=board)
+                piece, attacking=attacking, board=board)
 
             if save_options:
                 x, y = piece.get_coord()
