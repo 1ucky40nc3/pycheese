@@ -11,6 +11,8 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+from pycheese.core.entity import Entity
+from pycheese.core.entity import Empty
 from pycheese.core.entity import Piece
 from pycheese.core.entity import Pawn
 from pycheese.core.entity import Knight
@@ -20,6 +22,96 @@ from pycheese.core.entity import Queen
 from pycheese.core.entity import King
 
 from pycheese.core.error import NotWhitelistedException
+
+
+def initial_board(self) -> List[List[Type[Entity]]]:
+    """Create a nested list of Entitys that represents the chess board.
+
+    Note:
+        The chess board is build with the position 
+        'a8' at the coordinate (0, 0) (h1 --> (7, 7)).
+        Reminder: Coordinates have to be translated!
+        This function is called in the constructor.
+
+    Example:
+        >>> from pycheese.core.board import Board
+        >>> from pycheese.core.utils import initial_board
+        >>> board = Board()
+        >>> board.set(initial_board())
+        >>> print(board.show())
+        ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+        ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ ♟︎ 
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+        ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+
+    Returns:
+        list: Nested list of Entitys that represents the chess board.
+    """
+    board = []
+
+    board.append([
+        Rook((0, 0), "black"), 
+        Knight((1, 0), "black"), 
+        Bishop((2, 0), "black"), 
+        Queen((3, 0), "black"), 
+        King((4, 0), "black"), 
+        Bishop((5, 0), "black"), 
+        Knight((6, 0), "black"), 
+        Rook((7, 0), "black"),
+    ])
+    board.append([Pawn((i, 1), "black") for i in range(8)])
+
+    for i in range(4):
+        board.append([Empty((j, i + 2)) for j in range(8)])
+
+    board.append([Pawn((i, 6), "white") for i in range(8)])
+    board.append([
+        Rook((0, 7), "white"), 
+        Knight((1, 7), "white"), 
+        Bishop((2, 7), "white"), 
+        Queen((3, 7), "white"), 
+        King((4, 7), "white"), 
+        Bishop((5, 7), "white"), 
+        Knight((6, 7), "white"), 
+        Rook((7, 7), "white"),
+    ])
+    
+    return board
+
+def empty_board(self) -> List[List[Type[Entity]]]:
+    """Create a nested list of Entitys that represents an empty chess board.
+
+    Note:
+        The chess board is build with the position 
+        'a8' at the coordinate (0, 0) (h1 --> (7, 7)).
+        Reminder: Coordinates have to be translated!
+
+    Example:
+        >>> board = Board()
+        >>> board.board = board.empty_board()
+        >>> print(board.show())
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ 
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+        ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡ ⊡
+
+    Returns:
+        list: Nested list of Entitys that represents the chess board.
+    """
+    board = []
+
+    for i in range(8):
+        board.append([Empty((j, i)) for j in range(8)])
+
+    return board
 
 
 class Boundary:
@@ -40,7 +132,7 @@ class Boundary:
         self.__min = min
         self.__max = max
     
-    def accepts(self, value: int) -> bool:
+    def accepts(self, value: Union[int, Tuple[int]]) -> bool:
         """Check if the value is inside the boundary.
 
         Args:
@@ -53,10 +145,17 @@ class Boundary:
         >>> boundary = Boundary(0, 4)
         >>> boundary.accepts(0)
         True
+        >>> boundary.accepts((0, 0))
+        True
         >>> boundary.accepts(4)
         False
         """
-        return value >= self.__min and value < self.__max
+        if isinstance(value, int):
+            value = tuple(value)
+
+        in_boundary = [v in range(self.__min, self.__max) for v in value]
+
+        return all(in_boundary)
 
 
 def coord_to_json(coord: Union[List[Tuple[int, int]], Tuple[int, int]],
