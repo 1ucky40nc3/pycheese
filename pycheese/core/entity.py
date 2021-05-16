@@ -16,30 +16,30 @@ from __future__ import annotations
 from typing import Type
 from typing import Union
 from typing import List
-from typing import Tuple
+from typing import list
 
-import pycheese.core.utils as utils
+from pycheese.core.utils import coord_to_json
 
 
 class Entity:
     """Abstact class for entities an a chessboard.
     
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
 
     Attributes:
-        __coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        __coord (`list` of `int`): Coordinate of the entity on the chessboard.
         __attacked (bool): Boolean that states if this entity is attacked.
     """
-    def __init__(self, coord: Tuple[int, int]):
+    def __init__(self, coord: List[int, int]):
         self.__coord = coord
         self.__attacked = False
 
-    def set_coord(self, coord: Tuple[int, int]) -> None:
+    def set_coord(self, coord: list[int, int]) -> None:
         """Set the coordinate of the piece."""
         self.__coord = coord
 
-    def get_coord(self) -> Tuple[int, int]:
+    def get_coord(self) -> list[int, int]:
         """Get the coordinate of the piece."""
         return self.__coord
 
@@ -60,13 +60,13 @@ class Empty(Entity):
     """A class that represents empty squares on a chessboard.
     
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
     
     Example:
         >>> empty = Empty(coord)
         >>> assert isinstance(empty, Entity)
     """
-    def __init__(self, coord: Tuple[int, int]):
+    def __init__(self, coord: list[int, int]):
         super().__init__(coord)
 
     def __str__(self) -> str:
@@ -80,28 +80,28 @@ class Piece(Entity):
     This means a piece could be a Pawn, Knight, Bishop, Rook, Queen or King.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
-        moves (`tuple` of `tuple` of int): Piece`s set of valid moves.
+        moves (`list` of `list` of int): Piece`s set of valid moves.
 
     Attributes:
         __player (`str`): Name of the player ("white" or "black").
-        __moves (`tuple` of `tuple` of int): Piece`s set of valid moves.
+        __moves (`list` of `list` of int): Piece`s set of valid moves.
         __options (`dict`):  Piece`s options on the board. With a shape of {"moves": ..., "other": ...}
         __pinned (`bool`): Boolean that states if this entity is pinned by an attacker.
         __attacker (`Piece`): Piece that is attacking this entity by it's coord.
     """
-    def __init__(self, coord: Tuple[int, int], player: str, moves: Tuple[Tuple[int, int]]):
+    def __init__(self, coord: list[int, int], player: str, moves: list[list[int, int]]):
         super().__init__(coord)
         
         self.__player = player
         self.__moves = moves
-        self.__options = None
+        self.__options = {"moves": [], "others": []}
 
         self.__pinned = False
         self.__attacker = None
 
-    def get_moves(self) -> Tuple[Tuple[int, int]]:
+    def get_moves(self) -> list[list[int, int]]:
         """Get all theoretical moves of the piece."""
         return self.__moves
 
@@ -121,15 +121,15 @@ class Piece(Entity):
         """Set this pieces's pinned attribute."""
         self.__pinned = status
     
-    def is_pinned(self) -> tuple[bool]:
+    def is_pinned(self) -> list[bool]:
         """Get if the piece is pinned."""
         return self.__pinned
 
-    def set_attacker(self, attacker: Union[Tuple[int], None] = None) -> None:
+    def set_attacker(self, attacker: Union[list[int], None] = None) -> None:
         """Set the piece's attacker."""
         self.__attacker = attacker
 
-    def get_attacker(self) -> Union[Tuple[int], None]:
+    def get_attacker(self) -> Union[list[int], None]:
         """Get if the piece's attacker."""
         return self.__attacker
 
@@ -144,13 +144,13 @@ class Piece(Entity):
     def to_json(self) -> dict:
         """Return a JSON representation of this objects data."""
         # Convert the coordinate into a JSON object.
-        coord = utils.coord_to_json(self.get_coord())
+        coord = coord_to_json(self.get_coord())
 
         # TODO: Consider other (companion) moves for JSON serialization.
         # Convert the piece's options to JSON.
         options = self.get_options()
         if options:
-            moves = utils.coord_to_json(
+            moves = coord_to_json(
                 options["moves"], as_list=True)
 
             others = options["others"]
@@ -160,9 +160,9 @@ class Piece(Entity):
                 pmove = others[i]["pmove"]
 
                 others[i] = {
-                    "companion": utils.coord_to_json(companion),
-                    "cmove": utils.coord_to_json(cmove),
-                    "pmove": utils.coord_to_json(pmove)
+                    "companion": coord_to_json(companion),
+                    "cmove": coord_to_json(cmove),
+                    "pmove": coord_to_json(pmove)
                 }
 
 
@@ -171,7 +171,7 @@ class Piece(Entity):
         attacker = self.get_attacker()
 
         if attacker:
-            attacker = utils.coord_to_json(attacker)
+            attacker = coord_to_json(attacker)
 
         return {
             "type": self.__class__.__name__,
@@ -190,31 +190,31 @@ class Pawn(Piece):
         Pawns have an special set of moves that are not given to the abstract class.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
-        attack_moves (`tuple` of `tuple` of `int`): Set of valid attacking moves.
-        special_move (`tuple` of `int`): Pawn`s special move (2^ from start).
-        __start_coord (`tuple` of `int`): The pawns starting position on the chessboard.
+        moves (`list` of `list` of `int`): Subset set of a pawns valid moves.
+        attack_moves (`list` of `list` of `int`): Set of valid attacking moves.
+        special_move (`list` of `int`): Pawn`s special move (2^ from start).
+        __start_coord (`list` of `int`): The pawns starting position on the chessboard.
 
     Example:
         >>> pawn = Pawn(coord, player)
         >>> assert isinstance(pawn, Piece)
         >>> assert isinstance(pawn, Entity)
     """
-    moves: Tuple[Tuple[int, int]] = ((0, 1),)
+    moves: list[list[int, int]] = [[0, 1]]
 
-    attack_moves: Tuple[Tuple[int, int]] = ((-1, 1), (1, 1))
-    special_move: Tuple[Tuple[int, int]] = (0, 2)
+    attack_moves: list[list[int, int]] = [[-1, 1], [1, 1]]
+    special_move: list[int, int] = [0, 2]
 
-    def __init__(self, coord: Tuple[int, int], player: str):
+    def __init__(self, coord: list[int, int], player: str):
         super().__init__(coord, player, Pawn.moves)
 
         self.__start_coord = coord
     
-    def get_attack_moves(self) -> Tuple[Tuple[int, int]]:
+    def get_attack_moves(self) -> list[list[int, int]]:
         """Get all moves a pawn can use to attack entities."""
         return Pawn.attack_moves
 
@@ -222,7 +222,7 @@ class Pawn(Piece):
         """Get a boolean that states if a pawn moves 2 squares down the board."""
         return self.__start_coord == self.get_coord()
 
-    def get_special_move(self) -> Tuple[Tuple[int, int]]:
+    def get_special_move(self) -> list[list[int, int]]:
         """Get a pawns special move."""
         return Pawn.special_move
 
@@ -235,21 +235,21 @@ class Knight(Piece):
     """Object-oriented represenation of a knight.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
+        moves (`list` of `list` of `int`): Subset set of a pawns valid moves.
 
     Example:
         >>> knight = Knight(coord, player)
         >>> assert isinstance(pawn, Piece)
         >>> assert isinstance(pawn, Entity)
     """
-    moves: Tuple[Tuple[int, int]] = (
-        (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1), (-2, 1))
+    moves: list[list[int, int]] = [
+        [-1, 2], [1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1]]
 
-    def __init__(self, coord: Tuple[int, int], player: str):
+    def __init__(self, coord: list[int, int], player: str):
         super().__init__(coord, player, Knight.moves)
 
     def __str__(self) -> str:
@@ -261,20 +261,20 @@ class Bishop(Piece):
     """Object-oriented represenation of a bishop.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (`tuple` of `tuple` of int): Subset set of a pawns valid moves.
+        moves (`list` of `list` of int): Subset set of a pawns valid moves.
 
     Example:
         >>> knight = Knight(coord, player)
         >>> assert isinstance(pawn, Piece)
         >>> assert isinstance(pawn, Entity)
     """
-    moves: Tuple[Tuple[int, int]] = ((-1, 1), (1, 1), (1, -1), (-1, -1))
+    moves: list[list[int, int]] = [[-1, 1], [1, 1], [1, -1], [-1, -1]]
 
-    def __init__(self, coord: Tuple[int, int], player: str):
+    def __init__(self, coord: list[int, int], player: str):
         super().__init__(coord, player, Bishop.moves)
 
     def __str__(self) -> str:
@@ -285,11 +285,11 @@ class Rook(Piece):
     """Object-oriented represenation of a rook.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
+        moves (`list` of `list` of `int`): Subset set of a pawns valid moves.
         __moved (`bool`): States if the rook has already moved.
 
     Example:
@@ -297,9 +297,9 @@ class Rook(Piece):
         >>> assert isinstance(pawn, Piece)
         >>> assert isinstance(pawn, Entity)
     """
-    moves: Tuple[Tuple[int, int]] = ((0, 1), (1, 0), (0, -1), (-1, 0))
+    moves: list[list[int, int]] = [[0, 1], [1, 0], [0, -1], [-1, 0]]
 
-    def __init__(self, coord: Tuple[int, int], player: str):
+    def __init__(self, coord: list[int, int], player: str):
         super().__init__(coord, player, Rook.moves)
 
         self.__moved = False
@@ -320,21 +320,21 @@ class Queen(Piece):
     """Object-oriented represenation of a queen.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
+        moves (`list` of `list` of `int`): Subset set of a pawns valid moves.
 
     Example:
         >>> queen = Queen(coord, player)
         >>> assert isinstance(pawn, Piece)
         >>> assert isinstance(pawn, Entity)
     """
-    moves: Tuple[Tuple[int, int]] = (
-        (0, 1), (1, 0), (0, -1), (-1, 0), (-1, 1), (1, 1), (1, -1), (-1, -1))
+    moves: list[list[int, int]] = [
+        [0, 1], [1, 0], [0, -1], [-1, 0], [-1, 1], [1, 1], [1, -1], [-1, -1]]
 
-    def __init__(self, coord: Tuple[int, int], player: str):
+    def __init__(self, coord: list[int, int], player: str):
         super().__init__(coord, player, Queen.moves)
 
     def __str__(self) -> str:
@@ -345,11 +345,11 @@ class King(Piece):
     """Object oriented represenation of a king.
 
     Args:
-        coord (`tuple` of `int`): Coordinate of the entity on the chessboard.
+        coord (`list` of `int`): Coordinate of the entity on the chessboard.
         player (`str`): Name of the player ("white" or "black").
 
     Attributes:
-        moves (`tuple` of `tuple` of `int`): Subset set of a pawns valid moves.
+        moves (`list` of `list` of `int`): Subset set of a pawns valid moves.
         __moved (bool): States if the king has already moved.
 
     Example:
@@ -357,10 +357,10 @@ class King(Piece):
         >>> assert isinstance(pawn, Piece)
         >>> assert isinstance(pawn, Entity)
     """
-    moves: Tuple[Tuple[int, int]] = (
-        (0, 1), (1, 0), (0, -1), (-1, 0), (-1, 1), (1, 1), (1, -1), (-1, -1))
+    moves: list[list[int, int]] = [
+        [0, 1], [1, 0], [0, -1], [-1, 0], [-1, 1], [1, 1], [1, -1], [-1, -1]]
 
-    def __init__(self, coord: Tuple[int, int], player: str):
+    def __init__(self, coord: list[int, int], player: str):
         super().__init__(coord, player, King.moves)
 
         self.__moved = False
