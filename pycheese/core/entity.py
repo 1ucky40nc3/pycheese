@@ -13,12 +13,9 @@ Example:
 
 from __future__ import annotations
 
-from typing import Type
-from typing import Union
-from typing import List
-from typing import list
+from typing import Optional
 
-from pycheese.core.utils import coord_to_json
+from pycheese.core.utils import coord_to_dict
 
 
 class Entity:
@@ -31,7 +28,7 @@ class Entity:
         __coord (`list` of `int`): Coordinate of the entity on the chessboard.
         __attacked (bool): Boolean that states if this entity is attacked.
     """
-    def __init__(self, coord: List[int, int]):
+    def __init__(self, coord: list[int, int]):
         self.__coord = coord
         self.__attacked = False
 
@@ -51,7 +48,7 @@ class Entity:
         """Get the value of the entity's attacked attribute."""
         return self.__attacked
 
-    def __eq__(self, other: Type[Entity]):
+    def __eq__(self, other: Entity):
         """Check two entities for equallity."""
         return (self.__class__ == other.__class__ and
                 self.get_coord() == other.get_coord())
@@ -99,7 +96,7 @@ class Piece(Entity):
         self.__options = {"moves": [], "others": []}
 
         self.__pinned = False
-        self.__attacker = None
+        self.__pinner = None
 
     def get_moves(self) -> list[list[int, int]]:
         """Get all theoretical moves of the piece."""
@@ -125,13 +122,13 @@ class Piece(Entity):
         """Get if the piece is pinned."""
         return self.__pinned
 
-    def set_attacker(self, attacker: Union[list[int], None] = None) -> None:
+    def set_pinner(self, pinner: Optional[list[int]] = None) -> None:
         """Set the piece's attacker."""
-        self.__attacker = attacker
+        self.__pinner = pinner
 
-    def get_attacker(self) -> Union[list[int], None]:
+    def get_pinner(self) -> Optional[list[int]]:
         """Get if the piece's attacker."""
-        return self.__attacker
+        return self.__pinner
 
     def __hash__(self) -> int:
         """Get the hash value of this object."""
@@ -141,16 +138,15 @@ class Piece(Entity):
             self.get_coord(),
         ))
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         """Return a JSON representation of this objects data."""
         # Convert the coordinate into a JSON object.
-        coord = coord_to_json(self.get_coord())
+        coord = coord_to_dict(self.get_coord())
 
-        # TODO: Consider other (companion) moves for JSON serialization.
         # Convert the piece's options to JSON.
         options = self.get_options()
         if options:
-            moves = coord_to_json(
+            moves = coord_to_dict(
                 options["moves"], as_list=True)
 
             others = options["others"]
@@ -160,18 +156,17 @@ class Piece(Entity):
                 pmove = others[i]["pmove"]
 
                 others[i] = {
-                    "companion": coord_to_json(companion),
-                    "cmove": coord_to_json(cmove),
-                    "pmove": coord_to_json(pmove)
+                    "companion": coord_to_dict(companion),
+                    "cmove": coord_to_dict(cmove),
+                    "pmove": coord_to_dict(pmove)
                 }
-
 
         # Represent the attacker via it's coordinate 
         # on the board, if the attacker exists.
-        attacker = self.get_attacker()
+        pinner = self.get_pinner()
 
-        if attacker:
-            attacker = coord_to_json(attacker)
+        if pinner:
+            pinner = coord_to_dict(pinner)
 
         return {
             "type": self.__class__.__name__,
@@ -179,7 +174,7 @@ class Piece(Entity):
             "coord": coord,
             "options": options,
             "pinned": self.is_pinned(),
-            "attacker": attacker,
+            "pinner": pinner,
         }
 
 

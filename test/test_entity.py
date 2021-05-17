@@ -26,6 +26,8 @@ from pycheese.core.entity import Rook
 from pycheese.core.entity import Queen
 from pycheese.core.entity import King
 
+from pycheese.core.utils import coord_to_dict
+
 from test.utils import assert_obj_attr
 from test.utils import assert_obj_func
 
@@ -94,7 +96,7 @@ def test_piece():
         assert_obj_attr(obj, "_Piece__moves", _moves(obj))
 
         
-        assert_obj_attr(obj, "_Piece__attacker", None)
+        assert_obj_attr(obj, "_Piece__pinner", None)
         assert_obj_attr(obj, "_Piece__pinned", False)
 
         assert_obj_func(obj, "set_coord", [(1, 1)], None)
@@ -103,33 +105,24 @@ def test_piece():
         assert_obj_func(obj, "get_player", None, player)
         assert_obj_func(obj, "get_moves", None, _moves(obj))
 
-        assert_obj_func(obj, "get_options", None, None)
-        assert_obj_func(obj, "set_options", [{"moves":[(1, 1)], "others": None}], None)
-        assert_obj_func(obj, "get_options", None, {"moves":[(1, 1)], "others": None})
+        assert_obj_func(obj, "get_options", None, {"moves":[], "others": []})
+        assert_obj_func(obj, "set_options", [{"moves":[(1, 1)], "others": []}], None)
+        assert_obj_func(obj, "get_options", None, {"moves":[(1, 1)], "others": []})
 
         assert_obj_func(obj, "set_attacked", [True], None)
         assert_obj_func(obj, "is_attacked", None, True)
 
         assert_obj_func(obj, "set_pinned", [True], None)
         assert_obj_func(obj, "is_pinned", None, (True))
-        assert_obj_func(obj, "set_attacker", [(1, 1)], None)
-        assert_obj_func(obj, "get_attacker", None, (1, 1))
+        assert_obj_func(obj, "set_pinner", [(1, 1)], None)
+        assert_obj_func(obj, "get_pinner", None, (1, 1))
 
         # Test object has functions. Note: Theese funcs are hard to test at large scale.
         # Therefore theese functions will be tested selectively in the following code.
-        assert "to_json" in dir(obj)
+        assert "to_dict" in dir(obj)
         assert "__hash__" in dir(obj)
 
-    # Test `to_json` function of a `Pawn`.
-    pawn_json = {
-        'type': 'Pawn', 
-        'player': 'white', 
-        'coord': {'x': 1, 'y': 1}, 
-        'options': {"moves":[(1, 1)], "others": None}, 
-        'pinned': True, 
-        'attacker': {'x': 1, 'y': 1}
-    }
-    assert pawn_json == pawn.to_json()
+
 
     # Test a `Pawn`'s special functionality.
     # Test with existing instance.
@@ -153,3 +146,34 @@ def test_piece():
 
 
     
+def test_to_dict():
+    """Test the `to_dict` function of a abstract Piece instance.
+
+    Check if the Piece class`s behavoir is accoordingly.
+    To do so initialize an instance of the abstract class and
+    instances of the first-level children of the abstract class.
+    Assert their behavior.
+    """
+    pieces = {"Pawn": Pawn, "Knight": Knight, "Bishop": Bishop, "Rook": Rook, "Queen": Queen, "King": King}
+
+    player = "white"
+    coord = [0, 0]
+    coord_ = [1, 1]
+    options = {"moves": [], "others": []}
+    options_ = {"moves": [coord_], "others": []}
+    
+
+    for name, cls in pieces.items():
+        piece = cls(coord, "white")
+        dict = {'type': name, 'player': 'white', 'coord': coord_to_dict(coord), 'options': options, 'pinned': False, 'pinner': None}
+        
+        assert piece.to_dict() == dict
+
+        piece.set_coord(coord_)
+        piece.set_options(options_)
+        piece.set_pinned(True)
+        piece.set_pinner(coord_)
+
+        dict = {'type': name, 'player': 'white', 'coord': coord_to_dict(coord_), 'options': options_, 'pinned': True, 'pinner': coord_to_dict(coord_)}
+
+        assert piece.to_dict() == dict
