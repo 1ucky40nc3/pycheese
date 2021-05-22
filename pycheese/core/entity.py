@@ -135,7 +135,7 @@ class Piece(Entity):
         return hash((
             self.__class__.__name__,
             self.get_player(),
-            self.get_coord(),
+            tuple(self.get_coord()),
         ))
 
     def to_dict(self) -> dict:
