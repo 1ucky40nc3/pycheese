@@ -227,8 +227,6 @@ class Board:
                 raise NotInPlayersPossesionException(
                     "The piece at source coordinate is not in the current player's possesion!")
     
-            # TODO: Get piece moves via options.
-            # TODO: Figure out way to add companion moves to options.
             source_moves, others = self.get_piece_options(source_entity)
 
             if target_coord not in source_moves:
@@ -524,7 +522,10 @@ class Board:
 
                     x, y = px + dx, py + dy
                     
-                    if isinstance(board[y][x], Empty):
+                    # Check if all coord in the path to [x, y] are empty.
+                    coords = [[x, y - int(dy/2)], [x, y]]
+
+                    if all(isinstance(board[j][i], Empty) for i, j in coords):
                         moves.append([x, y])
         
         # Check if `piece` is `pinned`. If the `piece` is `pinned`
@@ -561,12 +562,12 @@ class Board:
             if isinstance(piece, King):
                 tmp_moves = []
                 
-                for move in moves:
+                def is_attacked(move):
                     x, y = move
-                    if not board[y][x].is_attacked():
-                        tmp_moves.append(move)
+                    return not board[y][x].is_attacked()
                 
-                moves = tmp_moves
+                moves = list(filter(is_attacked, moves))
+
             # Else find the king and all moves of the
             # `piece` that hide the king from check.
             else:

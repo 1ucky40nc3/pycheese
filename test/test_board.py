@@ -77,7 +77,7 @@ def test_get_piece_options():
                 ]
             },
             "piece_coord": {"x": 0, "y": 6},
-            "piece_options": ([[0, 5], [0, 4]], []),
+            "piece_options": ([[0, 5], [0, 4]], [])
         },
         {
             "name": "white Pawn at a2 - with options",
@@ -91,7 +91,21 @@ def test_get_piece_options():
                 ]
             },
             "piece_coord": {"x": 0, "y": 6},
-            "piece_options": ([[0, 5], [0, 4]], []),
+            "piece_options": ([[0, 5], [0, 4]], [])
+        },
+        {
+            "name": "white Pawn at a2 - blocked by king",
+            "board": {
+                'state': 'ongoing', 
+                'player': 'white', 
+                'pieces': [
+                    {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+                    {'type': 'King', 'player': 'white', 'coord': {'x': 0, 'y': 5}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+                    {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+                ]
+            },
+            "piece_coord": {'x': 0, 'y': 6},
+            "piece_options": ([], [])
         }
     ]
 
