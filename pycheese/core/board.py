@@ -447,6 +447,7 @@ class Board:
                         else:
                             break
 
+                    # TODO: Fix pinning.
                     # Check if the `piece` could check the enemy king
                     # if a enemy `piece` would move. Set this `piece` to `pinned`.
                     if not self.is_check() and isinstance(piece, (Bishop, Rook, Queen)): 
@@ -459,7 +460,7 @@ class Board:
                             tmp_entity = board[tmp_y][tmp_x]
 
                             if isinstance(tmp_entity, Piece):
-                                if self.is_other_player_king(tmp_entity):
+                                if self.is_other_player_king(tmp_entity, piece):
                                     sx, sy = entity.get_coord()
 
                                     self.board[sy][sx].set_pinned(True)
@@ -795,8 +796,7 @@ class Board:
     def update(self) -> None:
         """Update the board with respect to the new position."""
         self.clear()
-        # TODO: Update attacker options.
-        # TODO: Move update attacked squares components here.
+
         options = self.get_other_player_options()
 
         for x, y in options:
@@ -806,7 +806,6 @@ class Board:
         if self.get_player_king().is_attacked():
             self.state = "check"
 
-        # TODO: Update current player options.
         options = self.get_player_options()
 
         # Update board state.
@@ -875,11 +874,9 @@ class Board:
             piece.set_pinned(i["pinned"])
             piece.set_pinner(i["pinner"])
 
-            # TODO: Add piece options.
             x, y = coord
             self.board[y][x] = piece
 
-        # TODO: Set attacked squares via all piece's options.
         self.update()            
 
     def view(self, squares: list[list[int]] = []) -> str:

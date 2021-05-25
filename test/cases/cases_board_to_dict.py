@@ -85,3 +85,15 @@ def case_napoleon_attack_board() -> dict:
             {'type': 'Pawn', 'player': 'black', 'coord': {'x': 4, 'y': 3}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
         ]
     }
+
+
+def case_queen_check_empty_board():
+    return  {
+        'state': 'ongoing',
+        'player': 'white', 
+        'pieces': [
+            {'type': 'Queen', 'player': 'white', 'coord': {'x': 3, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }

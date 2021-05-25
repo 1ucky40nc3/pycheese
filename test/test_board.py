@@ -35,8 +35,10 @@ from pycheese.core.entity import King
 
 from test.cases.cases_board_to_dict import case_initial_board
 from test.cases.cases_board_to_dict import case_napoleon_attack_board
+from test.cases.cases_board_to_dict import case_queen_check_empty_board
 
 from test.cases.cases_board_move import case_napoleon_attack
+from test.cases.cases_board_move import case_queen_check_empty
 from test.cases.cases_board_move import case_castle_kingside
 from test.cases.cases_board_move import case_castle_queenside
 
@@ -105,6 +107,21 @@ def test_get_piece_options():
                 ]
             },
             "piece_coord": {'x': 0, 'y': 6},
+            "piece_options": ([], [])
+        },
+        {
+            "name": "pinned white knight - empty board",
+            "board": {
+                'state': 'ongoing', 
+                'player': 'white', 
+                'pieces': [
+                    {'type': 'Knight', 'player': 'black', 'coord': {'x': 4, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'Queen', 'player': 'black', 'coord': {'x': 4, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+                ]
+            },
+            "piece_coord": {'x': 4, 'y': 6},
             "piece_options": ([], [])
         }
     ]
@@ -245,22 +262,30 @@ def test_move():
     """
     cases = [
         {
-            "name": "napoleon attack", 
+            "name": "napoleon attack",
+            "board": Board().to_dict(),
             "moves": case_napoleon_attack()
         },
         {
+            "name": "queen check empty board",
+            "board": case_queen_check_empty_board(),
+            "moves": case_queen_check_empty()
+        },
+        {
             "name": "castle kingside",
+            "board": Board().to_dict(),
             "moves": case_castle_kingside(),
         },
         {
             "name": "castle queenside",
+            "board": Board().to_dict(),
             "moves": case_castle_queenside(),
         }
     ]
 
     for case in cases:
         print(case["name"])
-        board = Board()
+        board = Board(case["board"])
 
         for move in case["moves"]:
             source_coord = move["source_coord"]

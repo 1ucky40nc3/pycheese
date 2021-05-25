@@ -93,6 +93,23 @@ def case_napoleon_attack() -> dict:
     ]
 
 
+def case_queen_check_empty():
+    """Test case for the boards `move` funtion."""
+    return [
+       {
+            "source_coord": [3, 6],
+            "target_coord": [4, 6],
+            "promotion_target": None,
+            "output": {
+                'state': 'check', 
+                'source_coord': {'x': 3, 'y': 6}, 
+                'target_coord': {'x': 4, 'y': 6}, 
+                'event': {'extra': 'unique', 'type': 'move'}
+            }
+        },
+    ]
+
+
 def case_castle_kingside() -> dict:
     """Test case for the boards `move` funtion.
     
