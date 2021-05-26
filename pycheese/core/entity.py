@@ -161,6 +161,9 @@ class Piece(Entity):
                     "pmove": coord_to_dict(pmove)
                 }
 
+            options["moves"] = moves
+            options["others"] = others
+            
         # Represent the attacker via it's coordinate 
         # on the board, if the attacker exists.
         pinner = self.get_pinner()
