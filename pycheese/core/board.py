@@ -112,6 +112,7 @@ class Board:
         self.state = "ongoing"
         self.player = "white"
 
+        self.last = {}
         self.board = []
         self.init(json)
 
@@ -228,7 +229,6 @@ class Board:
                     "The piece at source coordinate is not in the current player's possesion!")
     
             source_moves, others = self.get_piece_options(source_entity)
-
             if target_coord not in source_moves:
                 raise MoveNotLegalException(
                     "The move from the source coordinate to the target coordinate is not legal!")
@@ -292,6 +292,7 @@ class Board:
                     self.board[sy][sx] = Empty([sx, sy])
                 
                 # Set up for next turn.
+                self.last = coord_to_dict(target_coord)
                 self.next_turn()
         
         return {
@@ -406,7 +407,6 @@ class Board:
         others = []
 
         px, py = piece.get_coord()
-        pmoves = piece.get_moves()
 
         # If no `board` is specified select the position (`self.board`).
         if board is None:
@@ -418,7 +418,7 @@ class Board:
                 return options["moves"], options["others"]
 
         boundary = Boundary(0, 8)
-        for dx, dy in pmoves:
+        for dx, dy in piece.get_moves():
 
             # Invert the movement for white `pieces`, 
             # because of the way the board has ben initialized.
@@ -436,7 +436,6 @@ class Board:
                 x += dx
                 y += dy
 
-                # Check if a `piece` is at the current coordinate.
                 entity = board[y][x]
                 if isinstance(entity, Piece):
                     if attacking:
@@ -447,7 +446,6 @@ class Board:
                         else:
                             break
 
-                    # TODO: Fix pinning.
                     # Check if the `piece` could check the enemy king
                     # if a enemy `piece` would move. Set this `piece` to `pinned`.
                     if not self.is_check() and isinstance(piece, (Bishop, Rook, Queen)): 
@@ -466,20 +464,26 @@ class Board:
                                     self.board[sy][sx].set_pinned(True)
                                     self.board[sy][sx].set_pinner(piece.get_coord())
                                 break
-                                
+                
                 moves.append([x, y])
                 
                 # End the loop for `pieces` of type ``Pawn``, ``Knight`` or ``King``.
                 if isinstance(piece, (Pawn, Knight, King)):
                     break
 
+        if isinstance(piece, King) and not attacking:                
+            def is_attacked(move):
+                x, y = move
+                return not board[y][x].is_attacked()
+            
+            moves = list(filter(is_attacked, moves))
+
         # Check if the `piece` is of type ``Pawn``
         # and can execute it's unique movement.
         if isinstance(piece, Pawn):
             amoves = []
 
-            pmoves = piece.get_attack_moves()
-            for move in pmoves:
+            for move in piece.get_attack_moves():
                 dx, dy = move
 
                 # Invert the movement for white `pieces`, 
@@ -540,42 +544,54 @@ class Board:
             dx, dy = ax - px, ay - py
             dx, dy = normalize(dx), normalize(dy)
 
-            start_x, stop_x = min(ax, px), max(ax, px)
+            start_x, stop_x = sorted([ax, px])
             xboundary = Boundary(start_x, stop_x)
             
-            start_y, stop_y = min(ay, py), max(ay, py)
+            start_y, stop_y = sorted([ay, py])
             yboundary = Boundary(start_y, stop_y)
 
             x, y = px, py
-            tmp_moves = []
+            tmp = []
             while xboundary.accepts(x + dx) and yboundary.accepts(y + dy):
                 x += dx
                 y += dy
 
-                tmp_moves.append([x, y])
-
-            moves = list(filter(lambda move: move in tmp_moves, moves))
+                tmp.append([x, y])
+            
+            moves = list(filter(lambda move: move in tmp, moves))
 
         # If the current player is in check: Find all moves that resolve the check.
         if self.is_check() and not attacking:
             # If the `piece` is of type ``King`` then only moves
             # that lead to non attacked coordinates are valid.
             if isinstance(piece, King):
-                tmp_moves = []
+                ax, ay = dict_to_coord(self.last)
+                entity = board[ay][ax]
+                emoves = []
                 
-                def is_attacked(move):
-                    x, y = move
-                    return not board[y][x].is_attacked()
-                
-                moves = list(filter(is_attacked, moves))
+                boundary = Boundary(0, 8)
+                for dx, dy in entity.get_moves():
+
+                    x, y = ax, ay
+                    while boundary.accepts((x + dx, y + dy)):
+                        x += dx
+                        y += dy
+
+                        entity = board[y][x]
+                        if isinstance(entity, Empty) or entity == piece:
+                            emoves.append([x, y])
+                        else:
+                            break
+
+                moves = list(filter(lambda move: move not in emoves, moves))
 
             # Else find the king and all moves of the
             # `piece` that hide the king from check.
             else:
                 king = self.get_player_king()
 
-                # list of all moves to avoid check.
-                tmp_moves = []
+                # List of all moves to avoid check.
+                tmp = []
 
                 # Set the `state` temporary to "ongoing" to look
                 # into future positions without restrictions.
@@ -598,10 +614,10 @@ class Board:
                         tmp_board[py][px] = Empty([px, py])
 
                         if king.get_coord() not in self.get_other_player_options(board=tmp_board, save=False):
-                            tmp_moves.append([x, y])
+                            tmp.append([x, y])
 
                 self.state = "check"
-                moves = tmp_moves
+                moves = tmp
 
         # Check if the player can castle.
         # To so first check if the king has already moved or a given rook
@@ -851,10 +867,10 @@ class Board:
         pieces = self.get_player_pieces("white") + self.get_player_pieces("black")
         pieces = [piece.to_dict() for piece in pieces]
 
-
         return {
             "state": self.state,
             "player": self.player,
+            "last": self.last,
             "pieces": pieces
         }
 
@@ -862,15 +878,19 @@ class Board:
         """Reconstruct the board from JSON."""
         self.state = json["state"]
         self.player = json["player"]
+        self.last = json["last"]
 
         self.set(empty_board())
 
         for i in json["pieces"]:
             coord = dict_to_coord(i["coord"])
-            player = i["player"]
-            
-            piece = str_to_piece(i["type"], coord, player)
+            piece = str_to_piece(i["type"], coord, i["player"])
 
+            options = i["options"]
+            piece.set_options({
+                "moves": dict_to_coord(options["moves"], as_list=True),
+                "others": options["others"]
+            })
             piece.set_pinned(i["pinned"])
             piece.set_pinner(i["pinner"])
 

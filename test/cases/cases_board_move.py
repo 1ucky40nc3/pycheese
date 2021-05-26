@@ -93,7 +93,7 @@ def case_napoleon_attack() -> dict:
     ]
 
 
-def case_queen_check_empty():
+def case_queen_check_empty() -> dict:
     """Test case for the boards `move` funtion."""
     return [
        {
@@ -109,6 +109,33 @@ def case_queen_check_empty():
         },
     ]
 
+
+def case_rook_checkmate() -> dict:
+    """Test case for the boards `move` funtion."""
+    return [
+       {
+            "source_coord": [7, 0],
+            "target_coord": [6, 0],
+            "promotion_target": None,
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 7, 'y': 0}, 
+                'target_coord': {'x': 6, 'y': 0}, 
+                'event': {'extra': 'unique', 'type': 'move'}
+            }
+        },
+        {
+            "source_coord": [0, 1],
+            "target_coord": [0, 0],
+            "promotion_target": None,
+            "output": {
+                'state': 'checkmate',
+                'source_coord': {'x': 0, 'y': 1}, 
+                'target_coord': {'x': 0, 'y': 0}, 
+                'event': {'extra': 'unique', 'type': 'move'}
+            }
+        }
+    ]
 
 def case_castle_kingside() -> dict:
     """Test case for the boards `move` funtion.

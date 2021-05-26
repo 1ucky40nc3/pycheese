@@ -49,6 +49,8 @@ def test_boundary():
 
     assert not boundary.accepts([max, max])
 
+    assert Boundary(min, min).accepts(min)
+
 
 def test_coord_to_dict():
     x, y = 0, 0
@@ -77,12 +79,14 @@ def test_dict_to_coord():
     coord = [x, y]
 
     assert dict_to_coord(dict) == coord
+    assert dict_to_coord(dict, as_list=True) == [coord]
 
     # Test conversion of list of coord.
     dict = [dict, dict]
     coord = [[x, y]]*2
     
     assert dict_to_coord(dict) == coord
+    assert dict_to_coord(dict, as_list=True) == coord
 
     # Test special case with empty list.
     assert dict_to_coord([]) == []

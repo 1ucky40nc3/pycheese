@@ -34,10 +34,12 @@ from pycheese.core.entity import Queen
 from pycheese.core.entity import King
 
 from test.cases.cases_board_to_dict import case_initial_board
+from test.cases.cases_board_to_dict import case_rook_checkmate_board
 from test.cases.cases_board_to_dict import case_napoleon_attack_board
 from test.cases.cases_board_to_dict import case_queen_check_empty_board
 
 from test.cases.cases_board_move import case_napoleon_attack
+from test.cases.cases_board_move import case_rook_checkmate
 from test.cases.cases_board_move import case_queen_check_empty
 from test.cases.cases_board_move import case_castle_kingside
 from test.cases.cases_board_move import case_castle_queenside
@@ -71,7 +73,8 @@ def test_get_piece_options():
             "name": "white Pawn at a2 - with empty options",
             "board": {
                 'state': 'ongoing', 
-                'player': 'white', 
+                'player': 'white',
+                'last': {},
                 'pieces': [
                     {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
                     {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
@@ -85,7 +88,8 @@ def test_get_piece_options():
             "name": "white Pawn at a2 - with options",
             "board": {
                 'state': 'ongoing', 
-                'player': 'white', 
+                'player': 'white',
+                'last': {},
                 'pieces': [
                     {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 6}, 'options': {'moves': [[0, 5], [0, 4]], 'others': []}, 'pinned': False, 'pinner': None}, 
                     {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
@@ -99,7 +103,8 @@ def test_get_piece_options():
             "name": "white Pawn at a2 - blocked by king",
             "board": {
                 'state': 'ongoing', 
-                'player': 'white', 
+                'player': 'white',
+                'last': {},
                 'pieces': [
                     {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
                     {'type': 'King', 'player': 'white', 'coord': {'x': 0, 'y': 5}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
@@ -113,9 +118,10 @@ def test_get_piece_options():
             "name": "pinned white knight - empty board",
             "board": {
                 'state': 'ongoing', 
-                'player': 'white', 
+                'player': 'white',
+                'last': {}, 
                 'pieces': [
-                    {'type': 'Knight', 'player': 'black', 'coord': {'x': 4, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'Knight', 'player': 'white', 'coord': {'x': 4, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
                     {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
                     {'type': 'Queen', 'player': 'black', 'coord': {'x': 4, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
                     {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
@@ -123,6 +129,28 @@ def test_get_piece_options():
             },
             "piece_coord": {'x': 4, 'y': 6},
             "piece_options": ([], [])
+        },
+        {
+            "name": "pinned white rook - empty board",
+            "board": {
+                'state': 'ongoing', 
+                'player': 'white',
+                'last': {},
+                'pieces': [
+                    {'type': 'Rook', 'player': 'white', 'coord': {'x': 4, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'Queen', 'player': 'black', 'coord': {'x': 4, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+                ]
+            },
+            "piece_coord": {'x': 4, 'y': 6},
+            "piece_options": ([[4, 5], [4, 4], [4, 3], [4, 2], [4, 1]], [])
+        },
+        {
+            "name": "king moves - before rook checkmate",
+            "board": case_rook_checkmate_board(),
+            "piece_coord": {'x': 7, 'y': 0},
+            "piece_options": ([[6, 0]], [])
         }
     ]
 
@@ -150,7 +178,8 @@ def test_get_player_pieces():
             "name": "only kings on board",
             "board": {
                 'state': 'ongoing', 
-                'player': 'white', 
+                'player': 'white',
+                'last': {},
                 'pieces': [
                     {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
                     {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
@@ -163,7 +192,8 @@ def test_get_player_pieces():
             "name": "only kings a one pawn per player",
             "board": {
                 'state': 'ongoing', 
-                'player': 'white', 
+                'player': 'white',
+                'last': {},
                 'pieces': [
                     {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
                     {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
@@ -272,6 +302,11 @@ def test_move():
             "moves": case_queen_check_empty()
         },
         {
+            "name": "rook checkmate",
+            "board": case_rook_checkmate_board(),
+            "moves": case_rook_checkmate()
+        },
+        {
             "name": "castle kingside",
             "board": Board().to_dict(),
             "moves": case_castle_kingside(),
@@ -292,7 +327,7 @@ def test_move():
             target_coord = move["target_coord"]
 
             promotion_target = move["promotion_target"]
-            
+
             output = board.move(
                 source_coord, target_coord, promotion_target)
 
