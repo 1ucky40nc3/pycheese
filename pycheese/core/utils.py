@@ -27,6 +27,9 @@ class Boundary:
     def __init__(self, min: int, max: int):
         self.min = min
         self.max = max
+
+        if min == max:
+            self.max += 1
     
     def accepts(self, value: Union[int, List[int]]) -> bool:
         """Check if the value is inside the boundary.
@@ -41,7 +44,7 @@ class Boundary:
         >>> boundary = Boundary(0, 4)
         >>> boundary.accepts(0)
         True
-        >>> boundary.accepts((0, 0))
+        >>> boundary.accepts([0, 0])
         True
         >>> boundary.accepts(4)
         False
@@ -91,8 +94,9 @@ def dict_to_coord(json: Union[List[dict], dict],
         json = [json]
 
     for i in json:
-        x, y = i["x"], i["y"]
-        coord.append([x, y])
+        if "x" in i and "y" in i:
+            x, y = i["x"], i["y"]
+            coord.append([x, y])
 
     # Return a single coord if conditions meet.
     if len(coord) == 1 and not as_list:
