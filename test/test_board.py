@@ -151,6 +151,54 @@ def test_get_piece_options():
             "board": case_rook_checkmate_board(),
             "piece_coord": {'x': 7, 'y': 0},
             "piece_options": ([[6, 0]], [])
+        },
+        {
+            "name": "king moves - castle blocked by other player",
+            "board": {
+                'state': 'ongoing', 
+                'player': 'white',
+                'last': {},
+                'pieces': [
+                    {'type': 'Rook', 'player': 'white', 'coord': {'x': 7, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'Rook', 'player': 'black', 'coord': {'x': 5, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+                ]
+            },
+            "piece_coord": {'x': 4, 'y': 7},
+            "piece_options": ([[4, 6], [3, 7], [3, 6]], [])
+        },
+        {
+            "name": "king moves - cant castle because enemy check",
+            "board": {
+                'state': 'ongoing', 
+                'player': 'white',
+                'last': {'x': 4, 'y': 1},
+                'pieces': [
+                    {'type': 'Rook', 'player': 'white', 'coord': {'x': 7, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'Rook', 'player': 'black', 'coord': {'x': 4, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+                ]
+            },
+            "piece_coord": {'x': 4, 'y': 7},
+            "piece_options": ([[5, 7], [3, 7], [3, 6], [5, 6]], [])
+        },
+        {
+            "name": "rook moves - resolve check by capturing",
+            "board": {
+                'state': 'check', 
+                'player': 'white',
+                'last': {'x': 6, 'y': 6},
+                'pieces': [
+                    {'type': 'Rook', 'player': 'white', 'coord': {'x': 4, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'Knight', 'player': 'black', 'coord': {'x': 6, 'y': 6}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+                    {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+                ]
+            },
+            "piece_coord": {'x': 4, 'y': 6},
+            "piece_options": ([[6, 6]], [])
         }
     ]
 
@@ -161,6 +209,7 @@ def test_get_piece_options():
         x, y = dict_to_coord(case["piece_coord"])
         piece = board.get()[y][x]
 
+        print(board.get_piece_options(piece))
         assert sorted(board.get_piece_options(piece)) == sorted(case["piece_options"])
 
 
