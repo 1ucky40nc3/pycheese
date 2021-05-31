@@ -142,6 +142,34 @@ def case_promotion_empty_board():
     }
 
 
+def case_promotion_empty_bishop_draw_board():
+    return {
+        'state': 'ongoing', 
+        'player': 'white',
+        'last': {},
+        'pieces': [
+            {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'Bishop', 'player': 'white', 'coord': {'x': 1, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'white', 'coord': {'x': 6, 'y': 2}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'black', 'coord': {'x': 7, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }
+
+
+def case_promotion_empty_bishop_no_draw_board():
+    return {
+        'state': 'ongoing', 
+        'player': 'white',
+        'last': {},
+        'pieces': [
+            {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'Bishop', 'player': 'white', 'coord': {'x': 1, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'white', 'coord': {'x': 6, 'y': 2}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'black', 'coord': {'x': 7, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }
+
+
 def case_promotion_checkmate_empty_board():
     return {
         'state': 'ongoing', 

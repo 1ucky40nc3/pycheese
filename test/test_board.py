@@ -41,6 +41,8 @@ from test.cases.cases_board_to_dict import case_and_king_queen_stalemate_board
 from test.cases.cases_board_to_dict import case_promotion_empty_board
 from test.cases.cases_board_to_dict import case_promotion_checkmate_empty_board
 from test.cases.cases_board_to_dict import case_check_by_castle_board
+from test.cases.cases_board_to_dict import case_promotion_empty_bishop_draw_board
+from test.cases.cases_board_to_dict import case_promotion_empty_bishop_no_draw_board
 
 
 from test.cases.cases_board_move import case_napoleon_attack
@@ -52,6 +54,8 @@ from test.cases.cases_board_move import case_and_king_queen_stalemate
 from test.cases.cases_board_move import case_promotion_empty
 from test.cases.cases_board_move import case_promotion_checkmate_empty
 from test.cases.cases_board_move import case_check_by_castle
+from test.cases.cases_board_move import case_promotion_empty_bishop_draw
+from test.cases.cases_board_move import case_promotion_empty_bishop_no_draw
 
 
 def test_board():
@@ -393,6 +397,16 @@ def test_move():
             "name": "promotion checkmate - empty board",
             "board": case_promotion_checkmate_empty_board(),
             "moves": case_promotion_checkmate_empty()
+        },
+        {
+            "name": "promotion to bishop - draw - empty board",
+            "board": case_promotion_empty_bishop_draw_board(),
+            "moves": case_promotion_empty_bishop_draw()
+        },
+        {
+            "name": "promotion to bishop - draw - empty board",
+            "board": case_promotion_empty_bishop_no_draw_board(),
+            "moves": case_promotion_empty_bishop_no_draw()
         }
     ]
 

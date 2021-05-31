@@ -833,6 +833,45 @@ class Board:
         else:
             if not options:
                 self.state = "stalemate"
+        if self.draw_insufficient_material():
+            self.state = "draw"
+
+    def draw_insufficient_material(self) -> bool:
+        """Return if neither player can win."""
+        return (self.player_insufficient_material("white")
+                and self.player_insufficient_material("black"))
+
+    def player_insufficient_material(self, player):
+        """Return if the player has insufficient material to win."""
+        pieces = self.get_player_pieces(player)
+
+        # With Pawm, Rook or Queen the player has sufficient material.
+        if any(isinstance(piece, (Pawn, Rook, Queen)) for piece in pieces):
+            return False
+
+        # Check if only king or only king and knight or bishop are on the board.
+        if len(pieces) == 1 or len(pieces) == 2:
+            return True
+
+        # Check if any the player has knights on the board.
+        if any(isinstance(piece, Knight) for piece in pieces):
+            return False
+        
+        bishops = list(filter(lambda piece: isinstance(piece, (Bishop)), pieces))
+        colors = [self.get_coord_color(piece.get_coord()) for piece in bishops]
+        # Check if all of the bishops are of the same color.
+        if all(color == colors[0] for color in colors):
+            return True
+
+        return False
+
+    def get_coord_color(self, coord) -> str:
+        """Return the color of the square on the board at coord."""
+        x, y = coord
+
+        if (x + y) % 2 == 0:
+            return "white"
+        return "black"
 
     def next_turn(self) -> None:
         """Set up the next turn."""

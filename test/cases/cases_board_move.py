@@ -378,10 +378,42 @@ def case_promotion_empty():
             "target_coord": [0, 0],
             "promotion_target": "Knight",
             "output": {
-                'state': 'ongoing', 
+                'state': 'draw', 
                 'source_coord': {'x': 0, 'y': 1}, 
                 'target_coord': {'x': 0, 'y': 0},
                 'event': {'extra': 'Knight', 'type': 'promotion'}
+            }
+        }
+    ]
+
+
+def case_promotion_empty_bishop_draw():
+    return [
+        {
+            "source_coord": [0, 1],
+            "target_coord": [0, 0],
+            "promotion_target": "Bishop",
+            "output": {
+                'state': 'draw', 
+                'source_coord': {'x': 0, 'y': 1}, 
+                'target_coord': {'x': 0, 'y': 0},
+                'event': {'extra': 'Bishop', 'type': 'promotion'}
+            }
+        }
+    ]
+
+
+def case_promotion_empty_bishop_no_draw():
+    return [
+        {
+            "source_coord": [0, 1],
+            "target_coord": [0, 0],
+            "promotion_target": "Bishop",
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 0, 'y': 1}, 
+                'target_coord': {'x': 0, 'y': 0},
+                'event': {'extra': 'Bishop', 'type': 'promotion'}
             }
         }
     ]
