@@ -353,3 +353,67 @@ def case_castle_queenside() -> dict:
             }
         },
     ]
+
+
+def case_and_king_queen_stalemate():
+    return [
+        {
+            "source_coord": [0, 1],
+            "target_coord": [5, 1],
+            "promotion_target": None,
+            "output": {
+                'state': 'stalemate', 
+                'source_coord': {'x': 0, 'y': 1}, 
+                'target_coord': {'x': 5, 'y': 1},
+                'event': {'extra': 'unique', 'type': 'move'}
+            }
+        }
+    ]
+
+
+def case_promotion_empty():
+    return [
+        {
+            "source_coord": [0, 1],
+            "target_coord": [0, 0],
+            "promotion_target": "Knight",
+            "output": {
+                'state': 'ongoing', 
+                'source_coord': {'x': 0, 'y': 1}, 
+                'target_coord': {'x': 0, 'y': 0},
+                'event': {'extra': 'Knight', 'type': 'promotion'}
+            }
+        }
+    ]
+
+
+def case_promotion_checkmate_empty():
+    return [
+        {
+            "source_coord": [0, 1],
+            "target_coord": [0, 0],
+            "promotion_target": "Queen",
+            "output": {
+                'state': 'checkmate', 
+                'source_coord': {'x': 0, 'y': 1}, 
+                'target_coord': {'x': 0, 'y': 0},
+                'event': {'extra': 'Queen', 'type': 'promotion'}
+            }
+        }
+    ]
+
+
+def case_check_by_castle():
+    return [
+        {
+            "source_coord": [4, 7],
+            "target_coord": [6, 7],
+            "promotion_target": None,
+            "output": {
+                'state': 'check', 
+                'source_coord': {'x': 4, 'y': 7}, 
+                'target_coord': {'x': 6, 'y': 7}, 
+                'event': {'type': 'castle', 'extra': 'kingside'}
+            }
+        }
+    ]

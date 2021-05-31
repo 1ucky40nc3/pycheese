@@ -114,3 +114,55 @@ def case_queen_check_empty_board():
             {'type': 'King', 'player': 'black', 'coord': {'x': 4, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
         ]
     }
+
+
+def case_and_king_queen_stalemate_board():
+    return {
+        'state': 'ongoing', 
+        'player': 'white',
+        'last': {},
+        'pieces': [
+            {'type': 'Queen', 'player': 'white', 'coord': {'x': 0, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'white', 'coord': {'x': 6, 'y': 2}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'black', 'coord': {'x': 7, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }
+
+
+def case_promotion_empty_board():
+    return {
+        'state': 'ongoing', 
+        'player': 'white',
+        'last': {},
+        'pieces': [
+            {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'white', 'coord': {'x': 6, 'y': 2}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'black', 'coord': {'x': 7, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }
+
+
+def case_promotion_checkmate_empty_board():
+    return {
+        'state': 'ongoing', 
+        'player': 'white',
+        'last': {},
+        'pieces': [
+            {'type': 'Pawn', 'player': 'white', 'coord': {'x': 0, 'y': 1}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'white', 'coord': {'x': 6, 'y': 2}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'black', 'coord': {'x': 7, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }
+
+
+def case_check_by_castle_board():
+    return {
+        'state': 'ongoing', 
+        'player': 'white',
+        'last': {},
+        'pieces': [
+            {'type': 'Rook', 'player': 'white', 'coord': {'x': 7, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}, 
+            {'type': 'King', 'player': 'white', 'coord': {'x': 4, 'y': 7}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None},
+            {'type': 'King', 'player': 'black', 'coord': {'x': 5, 'y': 0}, 'options': {'moves': [], 'others': []}, 'pinned': False, 'pinner': None}
+        ]
+    }

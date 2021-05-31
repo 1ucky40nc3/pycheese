@@ -37,12 +37,21 @@ from test.cases.cases_board_to_dict import case_initial_board
 from test.cases.cases_board_to_dict import case_rook_checkmate_board
 from test.cases.cases_board_to_dict import case_napoleon_attack_board
 from test.cases.cases_board_to_dict import case_queen_check_empty_board
+from test.cases.cases_board_to_dict import case_and_king_queen_stalemate_board
+from test.cases.cases_board_to_dict import case_promotion_empty_board
+from test.cases.cases_board_to_dict import case_promotion_checkmate_empty_board
+from test.cases.cases_board_to_dict import case_check_by_castle_board
+
 
 from test.cases.cases_board_move import case_napoleon_attack
 from test.cases.cases_board_move import case_rook_checkmate
 from test.cases.cases_board_move import case_queen_check_empty
 from test.cases.cases_board_move import case_castle_kingside
 from test.cases.cases_board_move import case_castle_queenside
+from test.cases.cases_board_move import case_and_king_queen_stalemate
+from test.cases.cases_board_move import case_promotion_empty
+from test.cases.cases_board_move import case_promotion_checkmate_empty
+from test.cases.cases_board_move import case_check_by_castle
 
 
 def test_board():
@@ -364,6 +373,26 @@ def test_move():
             "name": "castle queenside",
             "board": Board().to_dict(),
             "moves": case_castle_queenside(),
+        },
+        {
+            "name": "check by castling",
+            "board": case_check_by_castle_board(),
+            "moves": case_check_by_castle()
+        },
+        {
+            "name": "king & queen stalemate",
+            "board": case_and_king_queen_stalemate_board(),
+            "moves": case_and_king_queen_stalemate()
+        },
+        {
+            "name": "promotion - empty board",
+            "board": case_promotion_empty_board(),
+            "moves": case_promotion_empty()
+        },
+        {
+            "name": "promotion checkmate - empty board",
+            "board": case_promotion_checkmate_empty_board(),
+            "moves": case_promotion_checkmate_empty()
         }
     ]
 
