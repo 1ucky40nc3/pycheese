@@ -277,10 +277,11 @@ class Board:
                         else:
                             event["type"] = "move"
                         
-                        if self.is_unique_move(target_coord, source_entity):
+                        is_unique, overlapp = self.is_unique_move(target_coord, source_entity)
+                        if is_unique:
                             event["extra"] = "unique"
                         else:
-                            event["extra"] = "multiple"
+                            event["extra"] = "".join(filter(None, ["multiple", overlapp]))
 
                         source_entity.set_coord(target_coord)
                         self.board[ty][tx] = source_entity
@@ -683,15 +684,23 @@ class Board:
         """Return if the board's state is 'check'."""
         return self.state == "check"
 
-    def is_unique_move(self, coord: list[int, int], piece: Piece) -> bool:
+    def is_unique_move(self, coord: list[int, int], piece: Piece) -> tuple[bool, str]:
         """Return if the pieces move to coord is unique for it's type."""
-        pieces = self.get_player_pieces_like(piece)
+        px, py = piece.get_coord()
 
-        for other in pieces:
+        for other in self.get_player_pieces_like(piece):
             if coord in other.get_options()["moves"]:
-                return False
+                ox, oy = other.get_coord()
+                
+                overlapp = ""
+                if px == ox:
+                    overlapp = "row"
+                elif py == oy:
+                    overlapp = "rank"
+
+                return False, overlapp
         
-        return True
+        return True, ""
 
     def get_player_pieces(self, player: str, board: list[list[Entity]] = None) -> list[Piece]:
         """Get a player's pieces.
